@@ -3287,6 +3287,7 @@ int dwc3_gadget_init(struct dwc3 *dwc)
 	dwc->has_gadget = true;
 	dev_info(dwc->dev, "%s Exit\n", __func__);
 #endif
+	dwc3_gadget_set_speed(&dwc->gadget, dwc->maximum_speed);
 
 	return 0;
 
