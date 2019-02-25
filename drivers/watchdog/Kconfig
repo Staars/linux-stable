@@ -836,6 +836,14 @@ config SPRD_WATCHDOG
 	  Say Y here to include watchdog timer supported
 	  by Spreadtrum system.
 
+config RTK_WATCHDOG
+	tristate "Realtek watchdog support"
+	depends on RTK_PLATFORM
+	select WATCHDOG_CORE
+	help
+	  Realtek  watchdog support.
+
+
 # X86 (i386 + ia64 + x86_64) Architecture
 
 config ACQUIRE_WDT
