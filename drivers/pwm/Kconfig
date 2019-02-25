@@ -510,4 +510,13 @@ config PWM_ZX
 	  To compile this driver as a module, choose M here: the module
 	  will be called pwm-zx.
 
+menuconfig PWM_RTK
+	tristate "Realtek PWM support"
+	depends on RTK_PLATFORM
+	default n
+	help
+	  Say Y, if you want to enable PWM feature on Realtek platform.
+
+
+
 endif
