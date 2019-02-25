@@ -621,4 +621,12 @@ config RISCV_TIMER
 	  is accessed via both the SBI and the rdcycle instruction.  This is
 	  required for all RISC-V systems.
 
+config RTK_TIMER
+	bool "Realtek System Timer"
+	depends on RTK_PLATFORM
+	select CLKSRC_MMIO
+	default n
+	help
+	  Realtek System Timer.
+
 endmenu

@@ -29,6 +29,12 @@ obj-$(CONFIG_PCIE_MEDIATEK) += pcie-mediatek.o
 obj-$(CONFIG_PCIE_MOBIVEIL) += pcie-mobiveil.o
 obj-$(CONFIG_PCIE_TANGO_SMP8759) += pcie-tango.o
 obj-$(CONFIG_VMD) += vmd.o
+obj-$(CONFIG_PCIE_RTD129x_SLOT2) += pcie-rtd129x-slot2.o
+obj-$(CONFIG_PCIE_RTD129x_SLOT1) += pcie-rtd129x-slot1.o
+obj-$(CONFIG_PCIE_RTD139x) += pcie-rtd139x.o
+obj-$(CONFIG_PCIE_RTD16xx_SLOT1) += pcie-rtd16xx-slot1.o
+obj-$(CONFIG_PCIE_RTD16xx_SLOT2) += pcie-rtd16xx-slot2.o
+
 # pcie-hisi.o quirks are needed even without CONFIG_PCIE_DW
 obj-y				+= dwc/
 

@@ -88,3 +88,7 @@ obj-$(CONFIG_GOLDFISH_PIC) 		+= irq-goldfish-pic.o
 obj-$(CONFIG_NDS32)			+= irq-ativic32.o
 obj-$(CONFIG_QCOM_PDC)			+= qcom-pdc.o
 obj-$(CONFIG_SIFIVE_PLIC)		+= irq-sifive-plic.o
+obj-$(CONFIG_ARCH_RTD119X)              += irq-rtd119x.o
+obj-$(CONFIG_ARCH_RTD129x) 		+= irq-rtd129x.o
+obj-$(CONFIG_ARCH_RTD139x) 		+= irq-rtd139x.o
+obj-$(CONFIG_ARCH_RTD16xx)              += irq-rtd16xx.o
