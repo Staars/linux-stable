@@ -35,6 +35,11 @@
 
 #include "power.h"
 
+#ifdef CONFIG_RTK_PLATFORM
+int RTK_PM_STATE;
+EXPORT_SYMBOL(RTK_PM_STATE);
+#endif/* CONFIG_RTK_PLATFORM */
+
 const char * const pm_labels[] = {
 	[PM_SUSPEND_TO_IDLE] = "freeze",
 	[PM_SUSPEND_STANDBY] = "standby",
@@ -495,6 +500,9 @@ int suspend_devices_and_enter(suspend_state_t state)
 
 	suspend_console();
 	suspend_test_start();
+	#ifdef CONFIG_RTK_PLATFORM
+	RTK_PM_STATE = state;
+	#endif /* CONFIG_RTK_PLATFORM */
 	error = dpm_suspend_start(PMSG_SUSPEND);
 	if (error) {
 		pr_err("Some devices failed to suspend, or early wake event detected\n");
