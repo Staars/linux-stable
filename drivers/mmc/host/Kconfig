@@ -4,6 +4,23 @@
 
 comment "MMC/SD/SDIO Host Controller Drivers"
 
+menuconfig MMC_RTK_EMMC
+	tristate "Realtek EMMC host driver"
+	help
+	  Support RealTek EMMC for Kylin.
+
+menuconfig MMC_RTK_SDMMC
+	tristate "Realtek SD/MMC host driver"
+	help
+	  Realtek SD/MMC host support.
+ 
+config MMC_RTK_SDMMC_DEBUG
+	bool  "Enable Realtek SD/MMC host driver debug message."
+	depends on MMC_RTK_SDMMC
+	default n
+	help
+	  Enable Realtek SD/MMC host driver debug message.
+
 config MMC_DEBUG
 	bool "MMC host drivers debugging"
 	depends on MMC != n
