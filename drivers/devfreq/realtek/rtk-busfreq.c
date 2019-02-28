@@ -171,7 +171,7 @@ static int rtk_busfreq_target(struct device *dev, unsigned long *freq,
 
 	return 0;
 }
-
+#ifdef CONFIG_SUSPEND
 static int rtk_busfreq_suspend(struct device *dev)
 {
 	struct rtk_busfreq *priv = dev_get_drvdata(dev);
@@ -184,8 +184,9 @@ static int rtk_busfreq_suspend(struct device *dev)
 	__edev_disable(priv);
 	devfreq_suspend_device(priv->devfreq);
 
-	if (IS_ENABLED(CONFIG_SUSPEND) && RTK_PM_STATE == PM_SUSPEND_STANDBY)
+	if (RTK_PM_STATE == PM_SUSPEND_STANDBY){
 		clk_set_rate(priv->clk, get_min_freq(priv));
+		}
 done:
 	dev_info(dev, "%s exit\n", __func__);
 	return 0;
@@ -200,16 +201,16 @@ static int rtk_busfreq_resume(struct device *dev)
 	if (priv->suspended)
 		goto done;
 
-	if (IS_ENABLED(CONFIG_SUSPEND) && RTK_PM_STATE == PM_SUSPEND_STANDBY)
+        if (RTK_PM_STATE == PM_SUSPEND_STANDBY){
 		clk_set_rate(priv->clk, get_max_freq(priv));
-
+		}
 	__edev_enable(priv);
 	devfreq_resume_device(priv->devfreq);
 done:
 	dev_info(dev, "%s exit\n", __func__);
 	return 0;
 }
-
+#endif
 static int rtk_busfreq_runtime_suspend(struct device *dev)
 {
 	struct rtk_busfreq *priv = dev_get_drvdata(dev);
