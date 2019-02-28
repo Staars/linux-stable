@@ -498,9 +498,9 @@ static int rtk_cpufreq_exit(struct cpufreq_policy *policy)
 	if (should_undo(priv, CPUFREQ_OPP_OF_CPUMASK_ADD_TABLE))
 		dev_pm_opp_of_cpumask_remove_table(policy->related_cpus);
 	if (should_undo(priv, CPUFREQ_OPP_SET_PROP_NAME))
-		dev_pm_opp_put_prop_name(dev);
+		dev_pm_opp_put_prop_name(priv->opp_table);
 	if (should_undo(priv, CPUFREQ_OPP_SET_REGULATOR))
-		dev_pm_opp_put_regulator(priv->opp_table);
+		dev_pm_opp_put_regulators(priv->opp_table);
 	if (should_undo(priv, CPUFREQ_GET_CLK))
 		clk_put(policy->clk);
 	kfree(priv);
@@ -517,8 +517,8 @@ static int rtk_cpufreq_init(struct cpufreq_policy *policy)
 	struct rtk_cpufreq_priv *priv;
 	struct cpufreq_frequency_table *freq_table;
 	unsigned int transition_latency;
-	struct dev_pm_opp *suspend_opp;
 	int ret;
+	const char * const reg_names[] = {"cpu"};
 
 	priv = kzalloc(sizeof(*priv), GFP_KERNEL);
 	if (!priv)
@@ -554,7 +554,7 @@ static int rtk_cpufreq_init(struct cpufreq_policy *policy)
 	set_inited(priv, CPUFREQ_GET_CLK);
 
 	/* try to get regulator */
-	opp_table = dev_pm_opp_set_regulator(dev, "cpu");
+	opp_table = dev_pm_opp_set_regulators(dev, reg_names, ARRAY_SIZE(reg_names) );
 	if (IS_ERR(opp_table)) {
 		ret = PTR_ERR(opp_table);
 		dev_warn(dev, "continue without regulator\n");
@@ -618,21 +618,15 @@ static int rtk_cpufreq_init(struct cpufreq_policy *policy)
 			ret);
 		goto error;
 	}
+	else 	{
+		policy->freq_table = freq_table;
+	}
 	set_inited(priv, CPUFREQ_OPP_INIT_CPUFREQ_TABLE);
 
 	/* get suspend opp */
 	rcu_read_lock();
-	suspend_opp = dev_pm_opp_get_suspend_opp(dev);
-	if (suspend_opp)
-		policy->suspend_freq = dev_pm_opp_get_freq(suspend_opp) / 1000;
+	policy->suspend_freq = dev_pm_opp_get_suspend_opp_freq(dev);
 	rcu_read_unlock();
-
-	ret = cpufreq_table_validate_and_show(policy, freq_table);
-	if (ret) {
-		dev_err(dev, "cpufreq_table_validate_and_show() returns %d\n",
-			ret);
-		goto error;
-	}
 
 	transition_latency = dev_pm_opp_get_max_transition_latency(dev);
 	if (!transition_latency)
@@ -668,10 +662,9 @@ static void rtk_cpufreq_ready(struct cpufreq_policy *policy)
 		of_property_read_u32(np, "dynamic-power-coefficient",
 			&power_coefficient);
 
-		priv->cdev = of_cpufreq_power_cooling_register(np,
-			policy->related_cpus, power_coefficient, NULL);
+		priv->cdev = of_cpufreq_cooling_register(policy);
 		if (IS_ERR(priv->cdev)) {
-			dev_err(priv->dev, "of_cpufreq_power_cooling_register() returns %ld\n",
+			dev_err(priv->dev, "of_cpufreq_cooling_register() returns %ld\n",
 				PTR_ERR(priv->cdev));
 			priv->cdev = NULL;
 		}
