@@ -42,10 +42,10 @@ static int clk_pll_debugfs_u64_get(void *data, u64 *val)
 DEFINE_SIMPLE_ATTRIBUTE(clk_pll_rate_op, clk_pll_debugfs_u64_get,
 	clk_pll_debugfs_u64_set, "%llu\n");
 
-static int clk_pll_debug_init(struct clk_hw *hw, struct dentry *dentry)
+static void clk_pll_debug_init(struct clk_hw *hw, struct dentry *dentry)
 {
 	debugfs_create_file("rtk_clk_rate", 0644, dentry, hw, &clk_pll_rate_op);
-	return 0;
+	return;
 }
 
 static const struct freq_table *ftbl_find_by_rate(const struct freq_table *ftbl,
