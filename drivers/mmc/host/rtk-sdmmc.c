@@ -90,12 +90,9 @@ extern void set_gpio18_low(void);
 	#define TOGGLE_GPIO_LOW18
 #endif*/
 
-#ifdef BPI
-#else
 static int sdmmc_on = 1;
 module_param(sdmmc_on, int, 0444);
 MODULE_PARM_DESC(sdmmc_on, "1:on; 0:off;");
-#endif
 
 enum eINT_enable_mode {
 	CMD_RSP_ONLY = 0,
@@ -116,11 +113,11 @@ static int rtk_sdmmc_send_stop_cmd(struct mmc_command *cmd, struct rtk_sdmmc_hos
 static int rtk_sdmmc_send_cmd_get_rsp(struct sdmmc_cmd_pkt *cmd_info);
 static int rtk_sdmmc_stream(struct sdmmc_cmd_pkt *cmd_info);
 static void rtk_sdmmc_hw_initial(struct rtk_sdmmc_host *rtk_host);
-static void rtk_sdmmc_timeout(unsigned long data);
+static void rtk_sdmmc_timeout(struct timer_list  *t); /*was unsigned long data*/
 #if defined(CONFIG_ARCH_RTD129x) || defined(CONFIG_ARCH_RTD119X)
-static void rtk_sdmmc_plug(unsigned long data);
+static void rtk_sdmmc_plug(struct timer_list  *t);/*was unsigned long data*/
 #endif
-static void rtk_sdmmc_cmd12_fun(unsigned long data);
+static void rtk_sdmmc_cmd12_fun(struct timer_list  *t);/*was unsigned long data*/
 static void rtk_sdmmc_set_access_mode(struct rtk_sdmmc_host *rtk_host,u8 level);
 void remove_sdcard(struct rtk_sdmmc_host *rtk_host);
 
@@ -187,8 +184,6 @@ void set_mmc_runtime_resume_flag(int flag);
 //static struct delayed_work rtk_cmd12_delayed_work;
 //=============================================
 
-#ifdef BPI
-#else
 void rtk_sdmmc_chk_param(u32 *pparam, u32 len, u8 *ptr)
 {
 	u32 value,i;
@@ -227,11 +222,10 @@ static int rtk_sdmmc_onoff(char * buf){
         sdmmc_on=1
 	*/
 	rtk_sdmmc_chk_param(&sdmmc_on,1,buf+1);
-	printk("BPI: %s: sdmmc_on(%d)\n", DRIVER_NAME,sdmmc_on);
+	printk("RTK: %s: sdmmc_on(%d)\n", DRIVER_NAME,sdmmc_on);
 	return 0;
 }
 __setup("sdmmc_on",rtk_sdmmc_onoff);
-#endif
 
 void rtk_sdmmc_wait_stop_cmd_irq_done(void)
 {
@@ -416,7 +410,7 @@ static void rtk_sdmmc_shutdown(struct platform_device *pdev)
 		mmc_detect_change(rtk_host->mmc, msecs_to_jiffies(det_time));
 	}
 }
-
+#ifdef CONFIG_SUSPEND
 #ifdef CONFIG_PM
 static int rtk_sdmmc_pm_suspend(struct device *dev)
 {
@@ -488,7 +482,6 @@ static int rtk_sdmmc_pm_suspend(struct device *dev)
 	return ret;
 }
 
-
 static int rtk_sdmmc_pm_resume(struct device *dev)
 {
 	int ret = 0;
@@ -497,7 +490,6 @@ static int rtk_sdmmc_pm_resume(struct device *dev)
 	struct mmc_host *mmc = dev_get_drvdata(dev);
 	struct rtk_sdmmc_host *rtk_host = mmc_priv(mmc);
 	void __iomem *pll_base = rtk_host->pll;
-	void __iomem *sdmmc_base = rtk_host->sdmmc;
 
 	if (get_RTK_PM_STATE() == PM_SD_SUSPEND_STANDBY)
 		printk(KERN_ERR "[SD] Realtek SD card reader idle resume OK!!\n");
@@ -566,12 +558,12 @@ static int rtk_sdmmc_pm_resume(struct device *dev)
 	}
 
 	ret = pm_runtime_force_resume(dev);
-	setup_timer(&rtk_host->timer, rtk_sdmmc_timeout, (unsigned long)rtk_host);
+	timer_setup(&rtk_host->timer, rtk_sdmmc_timeout,0);
 #if defined(CONFIG_ARCH_RTD129x) || defined(CONFIG_ARCH_RTD119X)
-	setup_timer(&rtk_host->plug_timer, rtk_sdmmc_plug, (unsigned long)rtk_host);
+	timer_setup(&rtk_host->plug_timer, rtk_sdmmc_plug, ,0);
 #endif
 #ifdef CMD25_WO_STOP_COMMAND
-	setup_timer(&rtk_host->rtk_sdmmc_stop_cmd, rtk_sdmmc_cmd12_fun, (unsigned long)rtk_host);
+	timer_setup(&rtk_host->rtk_sdmmc_stop_cmd, rtk_sdmmc_cmd12_fun, ,0);
 #endif
 	rtk_sdmmc_sync(rtk_host);
 #if defined(CONFIG_ARCH_RTD129x) || defined(CONFIG_ARCH_RTD119X)
@@ -601,7 +593,7 @@ static const struct dev_pm_ops rtk_sdmmc_pm_ops = {
         SET_SYSTEM_SLEEP_PM_OPS(rtk_sdmmc_pm_suspend, rtk_sdmmc_pm_resume)
 };
 #endif
-
+#endif /*CONFIG_SUSPEND*/
 static void rtk_sdmmc_reset(struct rtk_sdmmc_host *rtk_host)
 {
 	void __iomem *sdmmc_base = rtk_host->sdmmc;
@@ -1544,9 +1536,10 @@ int rtk_sdmmc_cpu_wait(char* drv_name, struct rtk_sdmmc_host *rtk_host, u8 cmdco
 					readb(sdmmc_base + SD_STATUS2),
 					readb(sdmmc_base + SD_BUS_STATUS));
 
-		if (rtk_host!=NULL && rtk_host->mrq!=NULL && rtk_host->mrq->cmd!=NULL)
-			printk(KERN_ERR "%s: error opcode = %d\n", __func__, rtk_host->mrq->cmd->opcode);
-			break;
+			if (rtk_host!=NULL && rtk_host->mrq!=NULL && rtk_host->mrq->cmd!=NULL){
+				printk(KERN_ERR "%s: error opcode = %d\n", __func__, rtk_host->mrq->cmd->opcode);
+				break;
+			}
 		}
 	}
 
@@ -2239,7 +2232,7 @@ static int rtk_sdmmc_stream(struct sdmmc_cmd_pkt *cmd_info)
 		cmdcode = rtk_host->ops->chk_cmdcode(cmd_info->cmd);
 
 #ifdef CMD25_WO_STOP_COMMAND //new write method
-		if (host->card && mmc_card_blockaddr(host->card) && (
+		if (host->card && mmc_card_is_blockaddr(host->card) && (
 			cmd_info->cmd->opcode == MMC_WRITE_BLOCK ||
 			cmd_info->cmd->opcode == MMC_WRITE_MULTIPLE_BLOCK ||
 			cmd_info->cmd->opcode == MMC_EXT_WRITE_MULTIPLE)) {
@@ -2277,7 +2270,7 @@ static int rtk_sdmmc_stream(struct sdmmc_cmd_pkt *cmd_info)
 		ret = rtk_sdmmc_stream_cmd(cmdcode, cmd_info, data_len);
 		if (ret == 0) {
 #ifdef CMD25_WO_STOP_COMMAND //new write method
-			if (host->card && mmc_card_blockaddr(host->card) && (
+			if (host->card && mmc_card_is_blockaddr(host->card) && (
 				cmd_info->cmd->opcode == MMC_WRITE_BLOCK ||
 				cmd_info->cmd->opcode == MMC_WRITE_MULTIPLE_BLOCK ||
 				cmd_info->cmd->opcode == MMC_EXT_WRITE_MULTIPLE)) {
@@ -3174,10 +3167,9 @@ static const struct mmc_host_ops rtk_sdmmc_ops ={
 };
 
 #ifdef CMD25_WO_STOP_COMMAND
-static void rtk_sdmmc_cmd12_fun(unsigned long data)
+static void rtk_sdmmc_cmd12_fun(struct timer_list  *t)
 {
-	struct rtk_sdmmc_host *rtk_host = (struct rtk_sdmmc_host *)data;
-
+	struct rtk_sdmmc_host *rtk_host = from_timer(rtk_host, t, timer);
 	if (sd_in_receive_data_state && rtk_host->rtk_sdmmc_cmd12 && rtk_host) {
 
 		if ( down_trylock(&cr_sd_sem) != 0 ) {  // @rtk_sdmmc_cmd12_fun, lock fail
@@ -3293,14 +3285,14 @@ static irqreturn_t rtk_sdmmc_wp_irq(int irq, void *data)
 	return IRQ_HANDLED;
 }
 #elif defined(CONFIG_ARCH_RTD129x) || defined(CONFIG_ARCH_RTD119X)
-static void rtk_sdmmc_plug(unsigned long data)
+static void rtk_sdmmc_plug(struct timer_list  *t)
 {
 	u32 reginfo = 0;
 	u32 det_time = 0;
 #ifdef CONFIG_ARCH_RTD119X
 	unsigned long timeout = 0;
 #endif
-	struct rtk_sdmmc_host *rtk_host = (struct rtk_sdmmc_host *)data;
+	struct rtk_sdmmc_host *rtk_host = from_timer(rtk_host, t, timer);
 	void __iomem *sdmmc_base = rtk_host->sdmmc;
 #if defined(CONFIG_ARCH_RTD129x)
 	unsigned long flags2;
@@ -3400,7 +3392,7 @@ static void rtk_sdmmc_plug(unsigned long data)
 	if (rtk_host->mmc->card  && !(g_ro & SD_WRITE_PROTECT) && (reginfo & SD_WRITE_PROTECT) && (reginfo & SD_EXISTENCE)) {
 		printk(KERN_INFO "The SD card is locked!!!\n");
 		g_ro = g_ro | SD_WRITE_PROTECT;
-		mmc_card_set_readonly(rtk_host->mmc->card);
+		rtk_host->mmc->card->state |= (1<<1); /* mmc_card_set_readonly(rtk_host->mmc->card); */
 		mmc_blk_set_ro(rtk_host->mmc->card);
 	}
 
@@ -3419,9 +3411,9 @@ static void rtk_sdmmc_req_end_tasklet(unsigned long param)
 	mmc_request_done(rtk_host->mmc, mrq);
 }
 
-static void rtk_sdmmc_timeout(unsigned long data)
+static void rtk_sdmmc_timeout(struct timer_list  *t)
 {
-	struct rtk_sdmmc_host *rtk_host = (struct rtk_sdmmc_host *)data;
+	struct rtk_sdmmc_host *rtk_host = from_timer(rtk_host, t, timer);
 	u32 int_status = readl(rtk_host->sdmmc+CR_SD_ISR);
 	u32 int_status_en = readl(rtk_host->sdmmc+CR_SD_ISREN);
 
@@ -3664,17 +3656,14 @@ static int rtk_sdmmc_probe(struct platform_device *pdev)
 	int irq = 0;
 	struct device_node *sdmmc_node = pdev->dev.of_node;
 
-#ifdef BPI
-#else
 	if(!sdmmc_on) {
 		rtk_sdmmc_show_version();
-		printk("BPI: %s: sdmmc_on(%d) force disable rtk_sdmmc driver \n",__FUNCTION__, sdmmc_on);
+		printk("RTK: %s: sdmmc_on(%d) force disable rtk_sdmmc driver \n",__FUNCTION__, sdmmc_on);
 		return -ENXIO;
 	}
 	else {
-		printk("BPI: %s: sdmmc_on(%d) enable rtk_sdmmc driver \n",__FUNCTION__, sdmmc_on);
+		printk("RTK: %s: sdmmc_on(%d) enable rtk_sdmmc driver \n",__FUNCTION__, sdmmc_on);
 	}
-#endif
 
 	clk_cr = devm_clk_get(&pdev->dev, "clk_en_cr");
 	if (IS_ERR(clk_cr)) {
@@ -3696,11 +3685,9 @@ static int rtk_sdmmc_probe(struct platform_device *pdev)
 	}
 
 	rtk_sdmmc_show_version();
-#ifdef BPI
-#else
-	printk("BPI: reset rtk_sdmmc ...\n");
+
+	printk("RTK: reset rtk_sdmmc ...\n");
 	reset_control_assert(rstc_cr);
-#endif
 
 	do_stop_command_wo_complete = 0; // probe stage
 	wait_stop_command_irq_done = 0; // probe stage
@@ -3839,12 +3826,12 @@ static int rtk_sdmmc_probe(struct platform_device *pdev)
                 goto out;
 	}
 #elif defined(CONFIG_ARCH_RTD129x) || defined(CONFIG_ARCH_RTD119X)
-	setup_timer(&rtk_host->plug_timer, rtk_sdmmc_plug, (unsigned long)rtk_host);
+	timer_setup(&rtk_host->plug_timer, rtk_sdmmc_plug, 0);
 #endif
-	setup_timer(&rtk_host->timer, rtk_sdmmc_timeout, (unsigned long)rtk_host);
+	timer_setup(&rtk_host->timer, rtk_sdmmc_timeout, 0);
 
 #ifdef CMD25_WO_STOP_COMMAND
-	setup_timer(&rtk_host->rtk_sdmmc_stop_cmd, rtk_sdmmc_cmd12_fun, (unsigned long)rtk_host);
+	timer_setup(&rtk_host->rtk_sdmmc_stop_cmd, rtk_sdmmc_cmd12_fun, 0);
 #endif
 	mmc->ops = &rtk_sdmmc_ops;
 	rtk_host->rtflags &= ~(RTKCR_FCARD_DETECTED|RTKCR_FCARD_SELECTED);
@@ -3917,7 +3904,9 @@ static struct platform_driver rtk_sdmmc_driver = {
 	.driver = {
 		.name = DRIVER_NAME,
 #ifdef CONFIG_PM
+#ifdef CONFIG_SUSPEND
 		.pm = &rtk_sdmmc_pm_ops,
+#endif
 #endif
 		.of_match_table = rtk_sdmmc_match,
 	},
