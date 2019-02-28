@@ -244,9 +244,9 @@ static int rtk_timer0_set_next(unsigned long cycles,
 	return rtk_clkevt_set_next(TIMER0, cycles, evt);
 }
 
-static cycle_t rtk_read_sched_clock0(struct clocksource *cs)
+static u64 rtk_read_sched_clock0(struct clocksource *cs)
 {
-	return (cycle_t)rtk_timer_get_value(TIMER0);
+	return (u64)rtk_timer_get_value(TIMER0);
 }
 
 static int rtk_tm0_set_state_periodic(struct clock_event_device *cev)
@@ -352,9 +352,9 @@ static int rtk_timer1_set_next(unsigned long cycles,
 	return rtk_clkevt_set_next(TIMER1, cycles, evt);
 }
 
-static cycle_t rtk_read_sched_clock1(struct clocksource *cs)
+static u64 rtk_read_sched_clock1(struct clocksource *cs)
 {
-	return (cycle_t)rtk_timer_get_value(TIMER1);
+	return (u64)rtk_timer_get_value(TIMER1);
 }
 
 static int rtk_tm1_set_state_periodic(struct clock_event_device *cev)
