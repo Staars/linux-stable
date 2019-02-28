@@ -9,6 +9,9 @@
  * published by the Free Software Foundation.
  */
 #ifndef CONFIG_ARCH_RTD119X
+#include <linux/module.h>
+#include "sdmmc_export.h"
+
 #ifdef CONFIG_SUSPEND
 
 #include <linux/suspend.h>
