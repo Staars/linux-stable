@@ -648,6 +648,7 @@ static void rtkemmc_shutdown(struct platform_device *pdev)
 }
 
 #ifdef CONFIG_PM
+#ifdef CONFIG_SUSPEND
 static int rtkemmc_suspend(struct device *dev)
 {
 	int ret = 0;
@@ -712,7 +713,8 @@ static int rtkemmc_resume(struct device *dev)
 static const struct dev_pm_ops rtk_dev_pm_ops = {
 	SET_SYSTEM_SLEEP_PM_OPS(rtkemmc_suspend, rtkemmc_resume)
 };
-#endif
+#endif  /*SUSPEND*/
+#endif  /*PM*/
 
 void card_stop(struct rtkemmc_host *emmc_port)
 {
@@ -2661,13 +2663,11 @@ static void rtkemmc_set_pin_mux(struct rtkemmc_host *emmc_port)
 	//rtk_lockapi_unlock2(flags2, _at_("rtkemmc_set_pin_mux"));
 }
 
-static void rtkemmc_timeout_timer(unsigned long data)
+static void rtkemmc_timeout_timer(struct timer_list  *t)
 {
-	struct rtkemmc_host *emmc_port;
 	unsigned long flags;
-//	unsigned long flags2;
 
-	emmc_port = (struct rtkemmc_host *)data;
+	struct rtkemmc_host *emmc_port = from_timer(emmc_port, t, timer);;
 	MMCPRINTF("rtkemmc_timeout_timer fired ...\n");
 	MMCPRINTF("%s - int_wait=%08x\n", __func__, emmc_port->int_waiting);
     
@@ -4221,11 +4221,11 @@ static int SD_Stream_Cmd(u16 cmdcode,struct sd_cmd_pkt *cmd_info, unsigned int b
 	if (cmd_info->data)
 		make_sg_des(cmd_info, emmc_port->desc_paddr, emmc_port);
 	else if (data)
-		make_ip_des(data, block_count<<9, emmc_port->desc_paddr, emmc_port);
+		make_ip_des((u32)data, block_count<<9, emmc_port->desc_paddr, emmc_port); /*cast char* to u32*/
 	else
 		BUG_ON(1);
 #else
-	make_ip_des(data, block_count<<9, emmc_port->desc_paddr, emmc_port);
+	make_ip_des((u32)data, block_count<<9, emmc_port->desc_paddr, emmc_port); /*cast char* to u32*/
 #endif
 STR_CMD_RET:
 #ifdef CONFIG_ARCH_RTD129x
@@ -4469,7 +4469,7 @@ static int SD_Stream(struct sd_cmd_pkt *cmd_info)
 	mmcinfo("host=%p\n",host);
 	if(host->card){
 		mmcinfo("card=%p\n",host->card);
-		if(mmc_card_blockaddr(host->card))
+		if(mmc_card_is_blockaddr(host->card))
 			printk("arg:0x%x blk\n",cmd_info->cmd->arg);
 		else
 			printk("arg:0x%x byte\n",cmd_info->cmd->arg);
@@ -4495,7 +4495,7 @@ static int SD_Stream(struct sd_cmd_pkt *cmd_info)
 			}
 		}
 
-		if(host->card && mmc_card_blockaddr(host->card))
+		if(host->card && mmc_card_is_blockaddr(host->card))
 			cmd_info->cmd->arg += cmd_info->block_count;
 		else
 			cmd_info->cmd->arg += dma_leng;
@@ -4557,7 +4557,7 @@ static int SD_Stream(struct sd_cmd_pkt *cmd_info)
 	u8 one_blk=0;
 	u8 f_in_dma = 0;
 	u16 cmdcode = 0;
-	unsigned long flags;
+	/*unsigned long flags;*/
 
 	struct mmc_host *host = cmd_info->emmc_port->mmc;
 	struct rtkemmc_host *emmc_port = cmd_info->emmc_port;
@@ -4621,7 +4621,7 @@ static int SD_Stream(struct sd_cmd_pkt *cmd_info)
 				err = SD_Stream_Cmd(cmdcode,&tmp_pkt,0);
 
 				if(err == 0){
-					if(host->card && mmc_card_blockaddr(host->card))
+					if(host->card && mmc_card_is_blockaddr(host->card))
 						tmp_pkt.cmd->arg += 1;
 					else
 						tmp_pkt.cmd->arg += BYTE_CNT;
@@ -4663,7 +4663,7 @@ static int SD_Stream(struct sd_cmd_pkt *cmd_info)
 					}
 				}
 
-				if(host->card && mmc_card_blockaddr(host->card))
+				if(host->card && mmc_card_is_blockaddr(host->card))
 					cmd_info->cmd->arg += cmd_info->block_count;
 				else
 					cmd_info->cmd->arg += dma_leng;
@@ -5238,7 +5238,7 @@ static int rtkemmc_probe(struct platform_device *pdev)
 	if(rtk_emmc_bus_wid == 4 || rtk_emmc_bus_wid == 5)
 		mmc->caps &= ~MMC_CAP_8_BIT_DATA;
 
-	mmc->caps2 |= MMC_CAP2_HC_ERASE_SZ;
+	/*mmc->caps2 |= MMC_CAP2_HC_ERASE_SZ; removed with 4.13*/
 	mmc->f_min = 300000;        //300K
 	mmc->f_max = 400000000; //400M
 #ifdef CONFIG_RTK_XEN_SUPPORT
@@ -5289,7 +5289,7 @@ static int rtkemmc_probe(struct platform_device *pdev)
 	} else
 		emmc_port->irq = irq;
 
-	setup_timer(&emmc_port->timer, rtkemmc_timeout_timer, (unsigned long)emmc_port);
+	timer_setup(&emmc_port->timer, rtkemmc_timeout_timer, 0);
 #endif
 	emmc_port->ops->set_crt_muxpad(emmc_port);
 	
@@ -5398,8 +5398,11 @@ static struct platform_driver rtkemmc_driver = {
 		.owner  = THIS_MODULE,
 		.of_match_table = of_match_ptr(rtkemmc_ids),
 #ifdef CONFIG_PM
+#ifdef CONFIG_SUSPEND
 		.pm     = &rtk_dev_pm_ops
 #endif
+#endif
+
 	},
 	.shutdown   = rtkemmc_shutdown,
 };

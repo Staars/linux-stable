@@ -488,7 +488,7 @@ static const u32 map_reg_to_clk[8] = {0x02,0x03,0x04,0x05,0xFF,0x00,0x01,0xFF};
 #define INT_BLOCK_R_GAP 0x200
 #define INT_BLOCK_W_GAP 5
 
-static const char *const state_tlb[9] = {
+static char *const state_tlb[9] = {
 	"STATE_IDLE",
 	"STATE_READY",
 	"STATE_IDENT",
@@ -500,14 +500,14 @@ static const char *const state_tlb[9] = {
 	"STATE_DIS"
 };
 
-static const char *const bit_tlb[4] = {
+static char *const bit_tlb[4] = {
 	"1bit",
 	"4bits",
 	"8bits",
 	"unknow"
 };
 
-static const char *const clk_tlb[8] = {
+static char *const clk_tlb[8] = {
 	"30MHz",
 	"40MHz",
 	"49MHz",
@@ -518,7 +518,7 @@ static const char *const clk_tlb[8] = {
 	"24MHz"
 };
 
-static const u32 const clk_2_hz[8] = {
+static u32 const clk_2_hz[8] = {
 	10000000,
 	12000000,
 	15000000,
@@ -530,21 +530,21 @@ static const u32 const clk_2_hz[8] = {
 };
 
 /* data read cmd */
-static const u8 const opcode_r_type[16] = {
+static u8 const opcode_r_type[16] = {
     0,0,0,0,0,1,1,0,0,0,0,0,1,1,1,0
 };
 
 /* data write cmd */
-static const u8 const opcode_w_type[16] = {
+static u8 const opcode_w_type[16] = {
     1,1,1,0,0,0,0,0,0,1,1,0,0,0,0,0
 };
 
 /* data xfer cmd */
-static const u8 const opcode_d_type[16] = {
+static u8 const opcode_d_type[16] = {
     1,1,1,0,0,1,1,0,0,1,1,0,1,1,1,0
 };
 
-static const char *const cmdcode_tlb[16] = {
+static char *const cmdcode_tlb[16] = {
 	"N_W",      /* 0 */
 	"AW3",      /* 1 */
 	"AW4",      /* 2 */
@@ -566,7 +566,7 @@ static const char *const cmdcode_tlb[16] = {
 #define card_sta_err_mask ((1<<31)|(1<<30)|(1<<29)|(1<<28)|(1<<27)|(1<<26)|(1<<24)|(1<<23)|(1<<22)|(1<<21)|(1<<20)|(1<<19)|(1<<18)|(1<<17)|(1<<16)|(1<<15)|(1<<13)|(1<<7))
 
 /* Only ADTC type cmd use */
-static const unsigned char rtk_sd_cmdcode[64][2] = {
+static unsigned char rtk_sd_cmdcode[64][2] = {
 	{EMMC_CMD_UNKNOW ,SD_R0 }, {EMMC_CMD_UNKNOW ,SD_R0 }, {EMMC_CMD_UNKNOW ,SD_R0 }, {EMMC_CMD_UNKNOW ,SD_R0 }, //0~3
 	{EMMC_CMD_UNKNOW ,SD_R0 }, {EMMC_CMD_UNKNOW ,SD_R0 }, {EMMC_NORMALREAD ,SD_R1 }, {EMMC_CMD_UNKNOW ,SD_R0 }, //4~7
 	{EMMC_NORMALREAD ,SD_R1 }, {EMMC_CMD_UNKNOW ,SD_R0 }, {EMMC_CMD_UNKNOW ,SD_R0 }, {EMMC_AUTOREAD1  ,SD_R1 }, //8~11
