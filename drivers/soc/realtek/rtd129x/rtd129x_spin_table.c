@@ -27,6 +27,10 @@
 #include <asm/cputype.h>
 #include <asm/smp_plat.h>
 
+#include <linux/cpu.h>
+#include <asm/idmap.h>
+#include <asm/virt.h>
+
 #include "rtd129x_cpu_hotplug.h"
 #include <soc/realtek/rtk_cpu.h>
 
