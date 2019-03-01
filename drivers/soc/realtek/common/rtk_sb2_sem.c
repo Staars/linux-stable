@@ -21,7 +21,8 @@
 #include <linux/platform_device.h>
 #include <linux/err.h>
 #include <soc/realtek/rtk_sb2_sem.h>
-
+#include <linux/of_device.h>
+#include <linux/fs.h>
 
 #define SB2_SEM_TRYLOCK_MAX 1024
 #define SB2_SEM_RETRY_MAX 10
@@ -156,7 +157,7 @@ static DEFINE_IDR(num_idr);
 
 static int sb2_sem_open(struct inode *inode, struct file *filp)
 {
-	struct sb2_sem_priv *priv = container_of(filp->private_data,
+	struct sb2_sem_priv *priv = container_of_safe(filp->private_data,
 		struct sb2_sem_priv, mdev);
 	struct device *dev = priv->mdev.this_device;
 	int ret;

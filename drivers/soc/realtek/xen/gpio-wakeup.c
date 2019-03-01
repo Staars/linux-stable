@@ -4,7 +4,7 @@
 #include <linux/device.h>
 #include <linux/kernel.h>
 #include <linux/types.h>
-#include <linux/switch.h>
+/*#include <linux/switch.h>*/
 #include <linux/of.h>
 
 #include <linux/gpio.h>
@@ -22,6 +22,8 @@ bool gpio_wakeup_en[136];
 bool gpio_wakeup_act[136];
 
 struct class *wakeup_class;
+/*const struct class_attribute *class_attr_gpio_wakeup;
+*/
 int wu_gpio_num;
 int gpio_irq_base;
 
@@ -35,8 +37,8 @@ static ssize_t gpio_wakeup_show(struct class *class,
 	return sprintf(buf, "%d\n", wu_gpio_num);
 }
 
-static CLASS_ATTR(gpio_wakeup, 0444, gpio_wakeup_show, NULL);
-
+/*static CLASS_ATTR(gpio_wakeup, 0444, gpio_wakeup_show, NULL); out since 4.13*/
+static CLASS_ATTR_RO(gpio_wakeup);
 
 static irqreturn_t gpio_wakeup_isr(int irq, void *data)
 {

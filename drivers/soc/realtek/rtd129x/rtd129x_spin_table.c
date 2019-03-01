@@ -26,10 +26,7 @@
 #include <asm/cpu_ops.h>
 #include <asm/cputype.h>
 #include <asm/smp_plat.h>
-
-#include <linux/cpu.h>
-#include <asm/idmap.h>
-#include <asm/virt.h>
+#include <asm/mmu_context.h>
 
 #include "rtd129x_cpu_hotplug.h"
 #include <soc/realtek/rtk_cpu.h>
@@ -197,8 +194,8 @@ static void smp_spin_table_cpu_die(unsigned int cpu)
 	}
 
 	cpu_hotplug[cpu] = 1;
-	flush_cache_all();
-	setup_mm_for_reboot();
+	/*flush_cache_all(); removed from kernel since 4.2 */
+	cpu_install_idmap(); /*setup_mm_for_reboot();*/
 	cpu_do_lowpower(cpu_release_addr[cpu]);
 }
 #endif
