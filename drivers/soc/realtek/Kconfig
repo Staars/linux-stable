@@ -14,7 +14,7 @@ endif
 
 config RTD129x
 	bool "Realtek RTD129x SoC family specific drivers"
-	depends on ARCH_REALTEK
+	depends on ARCH_RTD129X
 	default y
 	help
 	  Realtek RTD129x SoC family specific support.
@@ -28,7 +28,7 @@ endif # RTD129x
 
 config RTD129x_FPGA
 	bool "Realtek RTD129x FPGA"
-	depends on ARCH_REALTEK
+	depends on ARCH_RTD129X
 	select RTK_PLATFORM_FPGA
 	default n
 	help
