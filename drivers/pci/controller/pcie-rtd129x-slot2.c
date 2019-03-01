@@ -30,6 +30,7 @@
 #include <linux/suspend.h>
 #include <linux/kthread.h>
 #include <linux/spinlock.h>
+#include "../pci.h"
 
 #include <soc/realtek/rtk_pcie.h>
 #include <soc/realtek/rtk_cpu.h>
@@ -799,7 +800,7 @@ static int rtk_pcie2_probe(struct platform_device *pdev)
 	}
 
 	/* Register PCI-E host */
-	ret = of_pci_get_host_bridge_resources(pdev->dev.of_node, 0x1, 0xff,
+	ret = devm_of_pci_get_host_bridge_resources(&pdev->dev, 0x1, 0xff,
 		&res, &iobase);
 	if (ret)
 		goto err_out;
