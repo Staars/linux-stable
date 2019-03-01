@@ -15,6 +15,7 @@
 #include <linux/fs.h>
 #include <linux/miscdevice.h>
 #include <linux/uaccess.h>
+#include <linux/of_device.h>
 
 #define RTK_UCTRL_IOCTL_MAGIC 0xEB
 #define RTK_UCTRL_IOCTL_NONE _IO(RTK_UCTRL_IOCTL_MAGIC,  0x00)
@@ -119,7 +120,7 @@ static struct platform_driver rtk_uctrl_driver = {
 	.probe = rtk_uctrl_probe,
 	.driver = {
 		.name = "rtk-uctrl",
-		.of_match_table = rtk_uctrl_match,
+		.of_match_table = of_match_ptr(rtk_uctrl_match),
 	},
 };
 
