@@ -87,7 +87,7 @@ void dcache_disable(void)
 		return;
 
 	set_sctlr(sctlr & ~(CR_C|CR_M));
-	flush_cache_all();
+	/*flush_cache_all();*/
 }
 
 void _rtk_cpu_power_up(int cpu)
