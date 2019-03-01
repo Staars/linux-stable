@@ -12,8 +12,12 @@
 #include <linux/fs.h>
 #include <linux/module.h>
 #include <linux/cpu.h>
+#include <linux/cpuidle.h>
+#include <linux/sched.h>
+#include <linux/sched/clock.h>
+#include <linux/sched/idle.h>
 #include <xen/xen.h>
-#include <xen/interface/rtk-hypercall.h>
+#include <soc/realtek/rtk-hypercall.h>
 #include <asm/xen/hypercall.h>
 #include <asm/xen/interface.h>
 
@@ -22,8 +26,8 @@
 unsigned int rtk_xen_domain_lock(unsigned long timeout, RTK_DOMAIN_LOCK lock_type) {
 	struct xen_rtk_domain_lock lock_param;
 	unsigned int ticket;
-	unsigned long base_time = sched_clock() / NSEC_PER_MSEC;
-	unsigned long current_time;
+	u64 base_time = local_clock() / NSEC_PER_MSEC;
+	u64 current_time;
 	int rc = 0;
 
 	if (!xen_domain())
