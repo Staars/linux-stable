@@ -280,13 +280,13 @@ config VMD
 
 config PCIE_RTD129x_SLOT1
 	bool "Realtek PCIe host controller (slot1)"
-	depends on ARCH_REALTEK
+	depends on ARCH_RTD129x
 	help
 	  Realtek PCIe host controller support (slot1).
 
 config PCIE_RTD129x_SLOT2
 	bool "Realtek PCIe host controller (slot2)"
-	depends on ARCH_REALTEK
+	depends on ARCH_RTD129x
 	help
 	  Realtek PCIe host controller support (slot2).
 
