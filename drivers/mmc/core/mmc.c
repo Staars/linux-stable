@@ -1167,7 +1167,6 @@ static int mmc_select_hs_ddr(struct mmc_card *card)
 static int mmc_select_ddr50(struct mmc_card *card)
 {
 	int err = 0;
-	u8 val;
 
 	err = __mmc_switch(card, EXT_CSD_CMD_SET_NORMAL,
 				EXT_CSD_HS_TIMING, EXT_CSD_TIMING_HS,
@@ -1598,6 +1597,7 @@ static int mmc_select_hs200(struct mmc_card *card)
 		 */
 		if (err == -EBADMSG)
 			mmc_set_timing(host, old_timing);
+#endif
 	}
 err:
 	if (err) {
