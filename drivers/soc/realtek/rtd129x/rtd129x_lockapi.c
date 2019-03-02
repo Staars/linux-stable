@@ -28,7 +28,7 @@
 #include <asm/system_misc.h>
 #include <asm/atomic.h>
 
-#include <soc/realtek/rtd129x_lockapi_nodef.h>
+#include <soc/realtek/rtd129x_lockapi.h>
 #include <soc/realtek/rtk_cpu.h>
 
 static long locakapi_lcounter;
