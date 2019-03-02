@@ -6,6 +6,12 @@
 
 /* this file is part of ehci-hcd.c */
 
+#ifdef CONFIG_USB_PATCH_ON_RTK
+/* Add Workaround to fixed EHCI/OHCI Wrapper can't work simultaneously */
+extern int RTK_ohci_force_suspend(const char *func);
+#endif
+
+
 /*-------------------------------------------------------------------------*/
 
 /*
@@ -928,6 +934,14 @@ static int intr_submit(
 
 	/* get endpoint and transfer/schedule data */
 	epnum = urb->ep->desc.bEndpointAddress;
+
+#ifdef CONFIG_USB_PATCH_ON_RTK
+#ifdef CONFIG_USB_OHCI_RTK
+	/* Add Workaround to fixed EHCI/OHCI Wrapper can't work simultaneously */
+	/* When EHCI schedule actived, force suspend OHCI*/
+	RTK_ohci_force_suspend(__func__);
+#endif
+#endif
 
 	spin_lock_irqsave(&ehci->lock, flags);
 

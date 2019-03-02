@@ -238,6 +238,9 @@ static const struct debugfs_reg32 dwc3_regs[] = {
 	dump_register(DGCMDPAR),
 	dump_register(DGCMD),
 	dump_register(DALEPENA),
+#ifdef CONFIG_USB_DWC3_RTK
+	dump_register(DEV_IMOD),
+#endif
 
 	dump_ep_register_set(0),
 	dump_ep_register_set(1),
@@ -746,7 +749,13 @@ void dwc3_debugfs_init(struct dwc3 *dwc)
 	dwc->regset->nregs = ARRAY_SIZE(dwc3_regs);
 	dwc->regset->base = dwc->regs - DWC3_GLOBALS_REGS_START;
 
+
+#ifdef CONFIG_USB_PATCH_ON_RTK
+	/* move debugfs to /sys/kernel/debug/usb/ */
+	root = debugfs_create_dir(dev_name(dwc->dev), usb_debug_root);
+#else
 	root = debugfs_create_dir(dev_name(dwc->dev), NULL);
+#endif
 	dwc->root = root;
 
 	debugfs_create_regset32("regdump", S_IRUGO, root, dwc->regset);
