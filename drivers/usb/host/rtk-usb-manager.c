@@ -145,7 +145,7 @@ int RTK_usb_reprobe_usb_storage(struct usb_device *udev)
 				desc = &intf->cur_altsetting->desc;
 
 				dev_info(&udev->dev , "bInterfaceClass = %d "
-					    "(jiffies 0x%2x = %d ms)\n",  desc->bInterfaceClass,
+					    "(jiffies 0x%2lx = %d ms)\n",  desc->bInterfaceClass,
 					    jiffies - INITIAL_JIFFIES,
 					    jiffies_to_msecs(jiffies - INITIAL_JIFFIES));
 				if (desc->bInterfaceClass == USB_CLASS_MASS_STORAGE) {
@@ -160,7 +160,7 @@ int RTK_usb_reprobe_usb_storage(struct usb_device *udev)
 			    udev->descriptor.bDeviceClass == USB_CLASS_MASS_STORAGE)) {
 			msleep(100);
 			dev_info(&udev->dev , "%s unbind-probe dev_name = %s "
-				    "(jiffies= 0x%2x = %d ms)\n", __func__,
+				    "(jiffies= 0x%2lx = %d ms)\n", __func__,
 				    dev_name(&udev->dev), jiffies - INITIAL_JIFFIES,
 				    jiffies_to_msecs(jiffies - INITIAL_JIFFIES));
 			RTK_usb_unbind_device(&udev->dev);
@@ -173,7 +173,7 @@ int RTK_usb_reprobe_usb_storage(struct usb_device *udev)
 			}
 
 			dev_info(&udev->dev , "%s bind-probe dev_name = %s "
-				    "(jiffies= 0x%2x = %d ms)\n", __func__,
+				    "(jiffies= 0x%2lx = %d ms)\n", __func__,
 				    dev_name(&udev->dev), jiffies - INITIAL_JIFFIES,
 				    jiffies_to_msecs(jiffies - INITIAL_JIFFIES));
 			RTK_usb_probe_device(&udev->dev);
@@ -266,7 +266,7 @@ static __maybe_unused void __usb_set_charger_power(
 /* set usb power domain */
 static void __usb_set_pd_power(struct manager_data* data, bool power_on)
 {
-	struct device *dev = data->dev;
+	/*struct device *dev = data->dev; unused*/
 
 	if (power_on &&
 		    (data->port0 || data->port1 || data->port2 || data->port3)) {
@@ -285,7 +285,7 @@ static inline struct reset_control *USB_reset_get(struct device *dev,
 {
 	struct reset_control *reset;
 
-	reset = reset_control_get(dev, str);
+	reset = devm_reset_control_get(dev, str);
 	if (IS_ERR(reset)) {
 		dev_dbg(dev, "No controller reset %s\n", str);
 		reset = NULL;
@@ -713,7 +713,7 @@ static int __usb_port_suspend(struct manager_data *data) {
 	bool is_suspend = true;
 
 	if (!data->rtk_usb)
-		return;
+		return 1;
 
 	dev_info(dev, "%s", __func__);
 	if (data->port0) {
@@ -742,7 +742,7 @@ static int __usb_port_resume(struct manager_data *data) {
 	bool is_suspend = false;
 
 	if (!data->rtk_usb)
-		return;
+		return 1;
 
 	dev_info(dev, "%s", __func__);
 	if (data->port0) {
@@ -1731,7 +1731,7 @@ static void rtk_usb_manager_shutdown(struct platform_device *pdev)
 	__usb_clear_clock_reset(data);
 
 	dev_info(dev, "[USB] Exit %s\n", __func__);
-	return 0;
+	return;
 }
 
 static struct platform_driver rtk_usb_manager_driver = {
