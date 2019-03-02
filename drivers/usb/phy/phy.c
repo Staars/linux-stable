@@ -500,6 +500,25 @@ struct  usb_phy *devm_usb_get_phy_by_node(struct device *dev,
 	spin_lock_irqsave(&phy_lock, flags);
 
 	phy = __of_usb_find_phy(node);
+
+#ifdef CONFIG_USB_PATCH_ON_RTK
+	// Add to support different phy driver on multi-host controller
+	if (IS_ERR(phy)) {
+		if (node != NULL) {
+			struct platform_device *pdev = NULL;
+			pdev = of_find_device_by_node(node);
+			if (pdev == NULL) {
+				dev_err(dev, "No usb phy platform device\n");
+			} else {
+				phy = platform_get_drvdata(pdev);
+				if (phy == NULL) phy = ERR_PTR(-ENODEV);
+			}
+		} else {
+			dev_err(dev, "No usb phy node\n");
+		}
+	}
+#endif
+
 	if (IS_ERR(phy)) {
 		devres_free(ptr);
 		goto err1;

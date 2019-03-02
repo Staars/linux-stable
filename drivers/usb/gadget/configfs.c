@@ -251,6 +251,12 @@ static int unregister_gadget(struct gadget_info *gi)
 	return 0;
 }
 
+#ifdef CONFIG_USB_RTK_DWC3_DRD_MODE
+extern struct usb_gadget_driver *rtk_dwc3_set_and_get_usb_gadget_driver(
+			struct usb_gadget_driver* driver);
+extern int usb_gadget_find_udc(const char *name);
+#endif
+
 static ssize_t gadget_dev_desc_UDC_store(struct config_item *item,
 		const char *page, size_t len)
 {
@@ -268,6 +274,18 @@ static ssize_t gadget_dev_desc_UDC_store(struct config_item *item,
 
 	if (!strlen(name)) {
 		ret = unregister_gadget(gi);
+
+#ifdef CONFIG_USB_RTK_DWC3_DRD_MODE
+		if (ret == -ENODEV && gi->composite.gadget_driver.udc_name) {
+			pr_info("%s gadget device disconnected remove udc_name %s\n",
+					__func__, gi->composite.gadget_driver.udc_name);
+			rtk_dwc3_set_and_get_usb_gadget_driver(NULL);
+			kfree(gi->composite.gadget_driver.udc_name);
+			gi->composite.gadget_driver.udc_name = NULL;
+			ret = 0;
+		}
+#endif
+
 		if (ret)
 			goto err;
 		kfree(name);
@@ -282,6 +300,16 @@ static ssize_t gadget_dev_desc_UDC_store(struct config_item *item,
 			gi->composite.gadget_driver.udc_name = NULL;
 			goto err;
 		}
+#ifdef CONFIG_USB_RTK_DWC3_DRD_MODE
+		/* We save usb_gadget_driver for DRD switch*/
+		if (usb_gadget_find_udc(name) == -ENODEV) {
+			pr_info("%s: udc_name=%s usb_udc_attach_driver --> "
+					"gadget device disconnected\n", __func__, name);
+			rtk_dwc3_set_and_get_usb_gadget_driver(
+					&gi->composite.gadget_driver);
+			ret = 0;
+		}
+#endif
 	}
 	mutex_unlock(&gi->lock);
 	return len;
@@ -432,7 +460,11 @@ static void config_usb_cfg_unlink(
 	mutex_lock(&gi->lock);
 	if (gi->composite.gadget_driver.udc_name)
 		unregister_gadget(gi);
+
+#ifdef CONFIG_USB_RTK_DWC3_DRD_MODE
+#else
 	WARN_ON(gi->composite.gadget_driver.udc_name);
+#endif
 
 	list_for_each_entry(f, &cfg->func_list, list) {
 		if (f->fi == fi) {
@@ -1229,6 +1261,10 @@ static void purge_configs_funcs(struct gadget_info *gi)
 		c->highspeed = 0;
 		c->fullspeed = 0;
 	}
+#ifdef CONFIG_USB_RTK_DWC3_DRD_MODE
+	wmb();
+#endif
+
 }
 
 static int configfs_composite_bind(struct usb_gadget *gadget,
@@ -1455,6 +1491,9 @@ static struct config_group *gadgets_make(
 
 	gi->composite.gadget_driver = configfs_driver_template;
 
+#ifdef CONFIG_USB_PATCH_ON_RTK
+	INIT_LIST_HEAD(&(gi->composite.gadget_driver.pending));
+#endif
 	gi->composite.gadget_driver.function = kstrdup(name, GFP_KERNEL);
 	gi->composite.name = gi->composite.gadget_driver.function;
 
