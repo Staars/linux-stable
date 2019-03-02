@@ -13,7 +13,8 @@
 #include <linux/kernel.h>
 #include <linux/delay.h>
 #include <linux/mm.h>
-#include <asm/mutex.h>
+#include <linux/mutex.h>
+#include <linux/compat.h>
 #include <asm/io.h>
 
 #include <soc/realtek/rtk_sha1.h>
