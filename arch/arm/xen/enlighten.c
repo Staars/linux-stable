@@ -230,13 +230,13 @@ static void xen_restart(enum reboot_mode reboot_mode, const char *cmd)
 		if (xen_initial_domain()) {
 			// go into SOC reset if under Dom0
 			rtk_machine_restart(reboot_mode, cmd);
-		} else {
+		} /*else {
 			if (!strncmp(cmd, "recovery", 9)) {
 				r.reason = SHUTDOWN_android_recovery;
 			} else if (!strncmp(cmd, "recovery_domu", 14)) {
 				r.reason = SHUTDOWN_android_recovery_domu;
 			}
-		}
+		}*/
 	}
 #endif /* End of CONFIG_RTK_XEN_SUPPORT */
 
