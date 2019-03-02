@@ -9,6 +9,8 @@
  *
  */
 
+#define CONFIG_COMPAT
+
 #include <linux/module.h>
 #include <linux/moduleparam.h>
 #include <linux/init.h>
@@ -27,9 +29,9 @@
 #include <linux/of_address.h>
 #include <linux/of_platform.h>
 #include <linux/uaccess.h>
-#include <linux/compat.h>
+#include <asm/compat.h>
 #include <linux/io.h>
-#include <asm/mutex.h>
+#include <linux/mutex.h>
 
 #include "rtk_mcp.h"
 
