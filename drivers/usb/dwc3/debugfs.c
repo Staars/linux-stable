@@ -238,9 +238,9 @@ static const struct debugfs_reg32 dwc3_regs[] = {
 	dump_register(DGCMDPAR),
 	dump_register(DGCMD),
 	dump_register(DALEPENA),
-#ifdef CONFIG_USB_DWC3_RTK
-	dump_register(DEV_IMOD),
-#endif
+//#ifdef CONFIG_USB_DWC3_RTK
+//	dump_register(DEV_IMOD),
+//#endif
 
 	dump_ep_register_set(0),
 	dump_ep_register_set(1),
