@@ -720,6 +720,13 @@ config STX104
 	  The base port addresses for the devices may be configured via the base
 	  array module parameter.
 
+config RTK_LSADC
+	tristate "Realtek RTD129X LSADC support"
+	depends on ARCH_RTD129x || ARCH_RTD139x
+	default n
+	help
+          Say Y, if you want to enable LSADC feature on Realtek platform.
+
 config SUN4I_GPADC
 	tristate "Support for the Allwinner SoCs GPADC"
 	depends on IIO
