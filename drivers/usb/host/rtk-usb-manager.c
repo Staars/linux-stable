@@ -30,6 +30,7 @@
 #include <soc/realtek/rtk_usb.h>
 #include <linux/uaccess.h>
 #include <linux/debugfs.h>
+#include "../core/usb.h"
 
 #define CRT_SOFT_RESET1 	0x0
 #define CRT_SOFT_RESET2 	0x4
@@ -90,6 +91,7 @@ struct manager_data {
  * [SOLUTION]: clear port power and reset port if got error
  * commit 42e905e60eaadd3fd8374db23dc644b98080717e
  */
+
 extern int RTK_usb_probe_device(struct device *dev);
 extern int RTK_usb_unbind_device(struct device *dev);
 
@@ -278,6 +280,37 @@ static void __usb_set_pd_power(struct manager_data* data, bool power_on)
 			return;
 		rtk_usb_iso_power_ctrl(data->rtk_usb, false);
 	}
+}
+
+int RTK_usb_probe_device(struct device *dev)
+{
+        struct usb_device_driver *udriver = to_usb_device_driver(dev->driver);
+        struct usb_device *udev = to_usb_device(dev);
+        int error = 0;
+
+        dev_dbg(dev, "%s\n", __func__);
+
+        /* TODO: Add real matching code */
+
+        /* The device should always appear to be in use
+         * unless the driver supports autosuspend.
+         */
+        if (!udriver->supports_autosuspend)
+                error = usb_autoresume_device(udev);
+
+        if (!error)
+                error = udriver->probe(udev);
+        return error;}
+
+int RTK_usb_unbind_device(struct device *dev)
+{
+        struct usb_device *udev = to_usb_device(dev);
+        struct usb_device_driver *udriver = to_usb_device_driver(dev->driver);
+
+        udriver->disconnect(udev);
+        if (!udriver->supports_autosuspend)
+                usb_autosuspend_device(udev);
+        return 0;
 }
 
 static inline struct reset_control *USB_reset_get(struct device *dev,
