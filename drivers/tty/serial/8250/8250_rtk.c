@@ -101,7 +101,7 @@ static void dw8250_force_idle(struct uart_port *p)
 
 static void dw8250_serial_out(struct uart_port *p, int offset, int value)
 {
-	writeb_no_log(value, p->membase + (offset << p->regshift));
+	writeb(value, p->membase + (offset << p->regshift));
 
 	/* Make sure LCR write wasn't ignored */
 	if (offset == UART_LCR) {
@@ -113,7 +113,7 @@ static void dw8250_serial_out(struct uart_port *p, int offset, int value)
 			if ((value & ~UART_LCR_SPAR) == (lcr & ~UART_LCR_SPAR))
 				return;
 			dw8250_force_idle(p);
-			writeb_no_log(value, p->membase + (UART_LCR << p->regshift));
+			writeb(value, p->membase + (UART_LCR << p->regshift));
 		}
 		/*
 		 * FIXME: this deadlocks if port->lock is already held
@@ -124,7 +124,7 @@ static void dw8250_serial_out(struct uart_port *p, int offset, int value)
 
 static unsigned int dw8250_serial_in(struct uart_port *p, int offset)
 {
-	unsigned int value = readb_no_log(p->membase + (offset << p->regshift));
+	unsigned int value = readb(p->membase + (offset << p->regshift));
 
 	return dw8250_modify_msr(p, offset, value);
 }
@@ -134,7 +134,7 @@ static unsigned int dw8250_serial_inq(struct uart_port *p, int offset)
 {
 	unsigned int value;
 
-	value = (u8)__raw_readq_no_log(p->membase + (offset << p->regshift));
+	value = (u8)__raw_readq(p->membase + (offset << p->regshift));
 
 	return dw8250_modify_msr(p, offset, value);
 }
@@ -142,9 +142,9 @@ static unsigned int dw8250_serial_inq(struct uart_port *p, int offset)
 static void dw8250_serial_outq(struct uart_port *p, int offset, int value)
 {
 	value &= 0xff;
-	__raw_writeq_no_log(value, p->membase + (offset << p->regshift));
+	__raw_writeq(value, p->membase + (offset << p->regshift));
 	/* Read back to ensure register write ordering. */
-	__raw_readq_no_log(p->membase + (UART_LCR << p->regshift));
+	__raw_readq(p->membase + (UART_LCR << p->regshift));
 
 	/* Make sure LCR write wasn't ignored */
 	if (offset == UART_LCR) {
@@ -156,7 +156,7 @@ static void dw8250_serial_outq(struct uart_port *p, int offset, int value)
 			if ((value & ~UART_LCR_SPAR) == (lcr & ~UART_LCR_SPAR))
 				return;
 			dw8250_force_idle(p);
-			__raw_writeq_no_log(value & 0xff,
+			__raw_writeq(value & 0xff,
 				     p->membase + (UART_LCR << p->regshift));
 		}
 		/*
@@ -169,7 +169,7 @@ static void dw8250_serial_outq(struct uart_port *p, int offset, int value)
 
 static void dw8250_serial_out32(struct uart_port *p, int offset, int value)
 {
-	writel_no_log(value, p->membase + (offset << p->regshift));
+	writel(value, p->membase + (offset << p->regshift));
 
 	/* Make sure LCR write wasn't ignored */
 	if (offset == UART_LCR) {
@@ -181,7 +181,7 @@ static void dw8250_serial_out32(struct uart_port *p, int offset, int value)
 			if ((value & ~UART_LCR_SPAR) == (lcr & ~UART_LCR_SPAR))
 				return;
 			dw8250_force_idle(p);
-			writel_no_log(value, p->membase + (UART_LCR << p->regshift));
+			writel(value, p->membase + (UART_LCR << p->regshift));
 		}
 		/*
 		 * FIXME: this deadlocks if port->lock is already held
@@ -192,7 +192,7 @@ static void dw8250_serial_out32(struct uart_port *p, int offset, int value)
 
 static unsigned int dw8250_serial_in32(struct uart_port *p, int offset)
 {
-	unsigned int value = readl_no_log(p->membase + (offset << p->regshift));
+	unsigned int value = readl(p->membase + (offset << p->regshift));
 
 	return dw8250_modify_msr(p, offset, value);
 }
@@ -204,7 +204,7 @@ static int dw8250_handle_irq(struct uart_port *p)
 
 	if (serial8250_handle_irq(p, iir)) {
 		if (d->isr_reg)
-			writel_no_log(d->isr_st_mask, d->isr_reg);
+			writel(d->isr_st_mask, d->isr_reg);
 		return 1;
 	} else if ((iir & UART_IIR_BUSY) == UART_IIR_BUSY) {
 		/* Clear the USR and write the LCR again. */
@@ -212,7 +212,7 @@ static int dw8250_handle_irq(struct uart_port *p)
 		//p->serial_out(p, UART_LCR, d->last_lcr);
 
 		if (d->isr_reg)
-			writel_no_log(d->isr_st_mask, d->isr_reg);
+			writel(d->isr_st_mask, d->isr_reg);
 		return 1;
 	}
 
@@ -325,14 +325,14 @@ static void dw8250_setup_port(struct uart_port *p)
 	 * If the Component Version Register returns zero, we know that
 	 * ADDITIONAL_FEATURES are not enabled. No need to go any further.
 	 */
-	reg = readl_no_log(p->membase + DW_UART_UCV);
+	reg = readl(p->membase + DW_UART_UCV);
 	if (!reg)
 		return;
 
 	dev_dbg(p->dev, "Designware UART version %c.%c%c\n",
 		(reg >> 24) & 0xff, (reg >> 16) & 0xff, (reg >> 8) & 0xff);
 
-	reg = readl_no_log(p->membase + DW_UART_CPR);
+	reg = readl(p->membase + DW_UART_CPR);
 	if (!reg)
 		return;
 
