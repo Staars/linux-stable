@@ -376,7 +376,7 @@ static void dwc3_rtk_shutdown(struct platform_device *pdev)
 
 	clk_disable_unprepare(rtk->clk);
 	dev_info(dev, "dwc3_rtk_shutdown ok!\n");
-	return 0;
+	return;
 }
 
 #ifdef CONFIG_OF

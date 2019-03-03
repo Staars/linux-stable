@@ -380,7 +380,6 @@ static int xhci_plat_remove(struct platform_device *dev)
 	return 0;
 }
 
-#ifdef CONFIG_PM_SLEEP
 #ifdef CONFIG_USB_PATCH_ON_RTK
 /* [DEV_FIX]implement New USB reset mechanism with CRT reset to workaround any HW or IP issues
  * commit 319ff9f5c298b94517a10d4ced59812b54994347
@@ -471,11 +470,6 @@ static const struct dev_pm_ops xhci_plat_pm_ops = {
 			   xhci_plat_runtime_resume,
 			   NULL)
 };
-
-#define DEV_PM_OPS	(&xhci_plat_pm_ops)
-#else
-#define DEV_PM_OPS	NULL
-#endif /* CONFIG_PM */
 
 static const struct acpi_device_id usb_xhci_acpi_match[] = {
 	/* XHCI-compliant USB Controller */
