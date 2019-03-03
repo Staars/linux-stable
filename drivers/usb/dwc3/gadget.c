@@ -3230,7 +3230,7 @@ int dwc3_gadget_init(struct dwc3 *dwc)
 	init_completion(&dwc->ep0_in_setup);
 
 #ifdef CONFIG_USB_DWC3_RTK
-	of_dma_configure(&dwc->gadget.dev, NULL);
+	of_dma_configure(&dwc->gadget.dev, NULL, true);
 #endif
 	dwc->gadget.ops			= &dwc3_gadget_ops;
 	dwc->gadget.speed		= USB_SPEED_UNKNOWN;
