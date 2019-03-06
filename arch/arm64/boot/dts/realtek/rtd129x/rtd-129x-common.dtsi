@@ -60,6 +60,7 @@
 		efuse_etn_phy: etn_phy@1B9 {
 			reg = <0x1B9 0x9>;
 			bits = <2 64>;
+			#phy-cells = <0>;
 		};
 		efuse_etn_phy_rc: etn_phy_rc@1BF {
 			reg = <0x1BF 0x2>;
