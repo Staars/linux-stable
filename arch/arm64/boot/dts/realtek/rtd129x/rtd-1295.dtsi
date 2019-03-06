@@ -440,7 +440,7 @@
 		status = "okay";
 	};
 
-	pcie@9804E000 {
+	pcie: pcie@9804E000 {
 		compatible = "realtek,rtk-pcie-slot1";
 		reg = <0x9804E000 0x00001000
 			0x9804F000 0x00001000
@@ -489,7 +489,7 @@
 			<0x72001101>;
 	};
 
-	pcie2@9803B000 {
+	pcie2: pcie@9803B000 {
 		compatible = "realtek,rtk-pcie-slot2";
 		reg = <0x9803B000 0x00001000
 			0x9803C000 0x00001000
