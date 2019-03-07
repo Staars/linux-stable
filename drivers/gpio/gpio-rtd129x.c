@@ -600,13 +600,19 @@ static int rtk_gpio_get_direction(struct gpio_chip *chip, unsigned int offset)
 }
 
 
-static int rtk_gpio_setdeb(struct gpio_chip *chip,
-	unsigned int offset, unsigned int debounce/*microsecond(us)*/)
+static int rtk_gpio_setconfig(struct gpio_chip *chip,
+	unsigned int offset, unsigned long config/*microsecond(us)*/)
 {
 	struct rtk_gpio_controller *p_rtk_gpio_ctl = chip2controller(chip);
 
 	RTK_GPIO_DBG("[%s] offset(%u) debounce(%d)",
 			__func__, offset, debounce);
+
+	u32 debounce;
+	if (pinconf_to_config_param(config) != PIN_CONFIG_INPUT_DEBOUNCE)
+ 		return -ENOTSUPP;
+
+  	debounce = pinconf_to_config_argument(config);
 
 	if (debounce >= 30*1000) {//30ms
 		debounce = RTK_GPIO_DEBOUNCE_30ms;
@@ -639,14 +645,14 @@ static int rtk_gpio_request(struct gpio_chip *chip, unsigned int offset)
 {
 	RTK_GPIO_DBG("[%s] offset(%u)", __func__, offset);
 
-	return pinctrl_request_gpio(chip->base + offset);
+	return pinctrl__gpio_request(chip->base + offset);
 }
 
 static void rtk_gpio_free(struct gpio_chip *chip, unsigned int offset)
 {
 	RTK_GPIO_DBG("[%s] offset(%u)", __func__, offset);
 
-	pinctrl_free_gpio(chip->base + offset);
+	pinctrl_gpio_free(chip->base + offset);
 }
 
 static int rtk_gpio_to_irq(struct gpio_chip *chip, unsigned int offset)
@@ -803,7 +809,7 @@ static int rtk_gpio_probe(struct platform_device *pdev)
 	p_rtk_gpio_ctl->chip.get_direction= rtk_gpio_get_direction;
 	p_rtk_gpio_ctl->chip.direction_output = rtk_gpio_direction_out;
 	p_rtk_gpio_ctl->chip.set = rtk_gpio_set;
-	p_rtk_gpio_ctl->chip.set_debounce = rtk_gpio_setdeb;
+	p_rtk_gpio_ctl->chip.set_config = rtk_gpio_setconfig;
 	p_rtk_gpio_ctl->chip.to_irq = rtk_gpio_to_irq;
 	p_rtk_gpio_ctl->chip.base = gpio_base;
 	p_rtk_gpio_ctl->chip.ngpio = gpio_numbers;
