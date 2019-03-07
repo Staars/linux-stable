@@ -645,7 +645,7 @@ static int rtk_gpio_request(struct gpio_chip *chip, unsigned int offset)
 {
 	RTK_GPIO_DBG("[%s] offset(%u)", __func__, offset);
 
-	return pinctrl__gpio_request(chip->base + offset);
+	return pinctrl_gpio_request(chip->base + offset);
 }
 
 static void rtk_gpio_free(struct gpio_chip *chip, unsigned int offset)
