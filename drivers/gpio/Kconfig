@@ -296,7 +296,7 @@ config GPIO_LOONGSON
 
 config GPIO_RTD129x
 	 bool "Realtek RTD129x GPIO support"
-	depends on ARCH_REALTEK
+	depends on ARCH_RTD129x
 	default y
 	select GPIOLIB_IRQCHIP
 	help
