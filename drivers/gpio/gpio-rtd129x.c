@@ -809,7 +809,7 @@ static int rtk_gpio_probe(struct platform_device *pdev)
 	p_rtk_gpio_ctl->chip.get_direction= rtk_gpio_get_direction;
 	p_rtk_gpio_ctl->chip.direction_output = rtk_gpio_direction_out;
 	p_rtk_gpio_ctl->chip.set = rtk_gpio_set;
-	p_rtk_gpio_ctl->chip.set_debounce = rtk_gpio_setconfig;
+	p_rtk_gpio_ctl->chip.set_config = rtk_gpio_setconfig;
 	p_rtk_gpio_ctl->chip.to_irq = rtk_gpio_to_irq;
 	p_rtk_gpio_ctl->chip.base = gpio_base;
 	p_rtk_gpio_ctl->chip.ngpio = gpio_numbers;
