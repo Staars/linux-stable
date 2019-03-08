@@ -734,6 +734,11 @@ int sdhci_start_signal_voltage_switch(struct mmc_host *mmc,
 				      struct mmc_ios *ios);
 void sdhci_enable_sdio_irq(struct mmc_host *mmc, int enable);
 
+#ifdef CONFIG_RTK_PLATFORM
+void rtk_sdhci_close_clk(void);
+#endif /* CONFIG_RTK_PLATFORM */
+
+
 #ifdef CONFIG_PM
 int sdhci_suspend_host(struct sdhci_host *host);
 int sdhci_resume_host(struct sdhci_host *host);

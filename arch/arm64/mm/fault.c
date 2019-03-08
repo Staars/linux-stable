@@ -45,6 +45,10 @@
 #include <asm/tlbflush.h>
 #include <asm/traps.h>
 
+#ifdef CONFIG_RTK_TRACER
+#include <linux/rtk_trace.h>
+#endif
+
 #include <acpi/ghes.h>
 
 struct fault_info {
@@ -282,7 +286,12 @@ static void __do_kernel_fault(unsigned long addr, unsigned int esr,
 	 */
 	if (!is_el1_instruction_abort(esr) && fixup_exception(regs))
 		return;
-
+#ifdef CONFIG_RTK_TRACER
+	uncached_logk(LOGK_DIE, (void *)regs->pc);
+	uncached_logk(LOGK_DIE, (void *)regs->regs[30]);
+	uncached_logk(LOGK_DIE, (void *)addr);
+	rtk_trace_disable();
+#endif
 	if (is_el1_permission_fault(esr, regs, addr)) {
 		if (esr & ESR_ELx_WNR)
 			msg = "write to read-only memory";

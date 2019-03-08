@@ -29,6 +29,31 @@
 #include "sd.h"
 #include "sd_ops.h"
 
+#ifdef CONFIG_MMC_RTK_SDMMC
+int mmc_runtime_resume_flag=0;
+int get_mmc_runtime_resume_flag(void)
+{
+        return mmc_runtime_resume_flag;
+}
+EXPORT_SYMBOL(get_mmc_runtime_resume_flag);
+void set_mmc_runtime_resume_flag(int flag)
+{
+        mmc_runtime_resume_flag = flag;
+}
+EXPORT_SYMBOL(set_mmc_runtime_resume_flag);
+#endif
+
+#ifdef CONFIG_ARCH_RTD119X
+#ifdef CONFIG_MMC_RTK_SDMMC
+int Menfid=0x0;
+int get_manfid(void)
+{
+        return Menfid;
+}
+EXPORT_SYMBOL(get_manfid);
+#endif
+#endif
+
 static const unsigned int tran_exp[] = {
 	10000,		100000,		1000000,	10000000,
 	0,		0,		0,		0
@@ -81,6 +106,13 @@ void mmc_decode_cid(struct mmc_card *card)
 	 * have to assume we can parse this.
 	 */
 	card->cid.manfid		= UNSTUFF_BITS(resp, 120, 8);
+
+#ifdef CONFIG_ARCH_RTD119X
+#ifdef CONFIG_MMC_RTK_SDMMC
+	Menfid = card->cid.manfid;
+#endif
+#endif
+
 	card->cid.oemid			= UNSTUFF_BITS(resp, 104, 16);
 	card->cid.prod_name[0]		= UNSTUFF_BITS(resp, 96, 8);
 	card->cid.prod_name[1]		= UNSTUFF_BITS(resp, 88, 8);

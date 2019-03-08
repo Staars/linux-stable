@@ -22,6 +22,13 @@
 
 #include "cpufreq_governor.h"
 
+#ifdef CONFIG_ARM_REALTEK_XEN_CPULOAD
+#include <xen/xen.h>
+#include <xen/interface/rtk-hypercall.h>
+#include <asm/xen/hypercall.h>
+#include <asm/xen/interface.h>
+#endif /* CONFIG_ARM_REALTEK_XEN_CPULOAD */
+
 #define CPUFREQ_DBS_MIN_SAMPLING_INTERVAL	(2 * TICK_NSEC / NSEC_PER_USEC)
 
 static DEFINE_PER_CPU(struct cpu_dbs_info, cpu_dbs);
@@ -121,6 +128,15 @@ unsigned int dbs_update(struct cpufreq_policy *policy)
 	unsigned int ignore_nice = dbs_data->ignore_nice_load;
 	unsigned int max_load = 0, idle_periods = UINT_MAX;
 	unsigned int sampling_rate, io_busy, j;
+
+#ifdef CONFIG_ARM_REALTEK_XEN_CPULOAD
+	unsigned int max_load = 0;
+	struct xen_rtk_cpu_load xen_load;
+
+	HYPERVISOR_rtk_hypercall_op(XENRTK_cpu_load, &xen_load);
+	max_load = xen_load.max_load;
+
+#else /* CONFIG_ARM_REALTEK_XEN_CPULOAD */
 
 	/*
 	 * Sometimes governors may use an additional multiplier to increase

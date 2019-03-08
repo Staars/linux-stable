@@ -59,6 +59,10 @@
 #include <asm/processor.h>
 #include <asm/stacktrace.h>
 
+#ifdef CONFIG_RTK_TRACER
+#include <linux/rtk_trace.h>
+#endif
+
 #ifdef CONFIG_STACKPROTECTOR
 #include <linux/stackprotector.h>
 unsigned long __stack_chk_guard __read_mostly;
@@ -425,6 +429,9 @@ __notrace_funcgraph struct task_struct *__switch_to(struct task_struct *prev,
 	contextidr_thread_switch(next);
 	entry_task_switch(next);
 	uao_thread_switch(next);
+#ifdef CONFIG_RTK_TRACER
+	uncached_logk_pc(LOGK_CTXID, (void*)sched_clock(), (void*)(uint64_t)task_pid_nr(next));
+#endif
 
 	/*
 	 * Complete any pending TLB or cache maintenance on this CPU in case
