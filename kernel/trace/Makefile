@@ -83,4 +83,6 @@ obj-$(CONFIG_UPROBE_EVENTS) += trace_uprobe.o
 
 obj-$(CONFIG_TRACEPOINT_BENCHMARK) += trace_benchmark.o
 
+obj-$(CONFIG_RTK_TRACER) += rtk_trace.o
+
 libftrace-y := ftrace.o
