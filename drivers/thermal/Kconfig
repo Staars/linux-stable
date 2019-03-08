@@ -473,6 +473,10 @@ depends on (ARCH_QCOM && OF) || COMPILE_TEST
 source "drivers/thermal/qcom/Kconfig"
 endmenu
 
+menu "Realtek thermal drivers"
+source "drivers/thermal/realtek/Kconfig"
+endmenu
+
 config ZX2967_THERMAL
 	tristate "Thermal sensors on zx2967 SoC"
 	depends on ARCH_ZX || COMPILE_TEST
