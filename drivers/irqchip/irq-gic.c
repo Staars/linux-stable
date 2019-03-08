@@ -50,6 +50,10 @@
 
 #include "irq-gic-common.h"
 
+#if defined(CONFIG_ARCH_MULTI_V7)
+#include <linux/rtk_trace.h>
+#endif
+
 #ifdef CONFIG_ARM64
 #include <asm/cpufeature.h>
 
@@ -339,7 +343,13 @@ static int gic_set_affinity(struct irq_data *d, const struct cpumask *mask_val,
 
 	gic_lock_irqsave(flags);
 	mask = 0xff << shift;
+
+#ifdef CONFIG_RTK_PLATFORM
+	bit = *cpumask_bits(mask_val) << shift;
+#else
 	bit = gic_cpu_map[cpu] << shift;
+#endif /* CONFIG_RTK_PLATFORM */
+
 	val = readl_relaxed(reg) & ~mask;
 	writel_relaxed(val | bit, reg);
 	gic_unlock_irqrestore(flags);
@@ -498,8 +508,19 @@ static void gic_dist_init(struct gic_chip_data *gic)
 	cpumask = gic_get_cpumask(gic);
 	cpumask |= cpumask << 8;
 	cpumask |= cpumask << 16;
+
+#ifdef CONFIG_RTK_PLATFORM
+#ifdef CONFIG_ARCH_RTD119X
+	for (i = 32; i < gic_irqs; i += 4)
+                writel_relaxed(0x03030303, base + GIC_DIST_TARGET + i * 4 / 4);
+#else
+	for (i = 32; i < gic_irqs; i += 4)
+		writel_relaxed(0x0F0F0F0F, base + GIC_DIST_TARGET + i * 4 / 4);
+#endif
+#else
 	for (i = 32; i < gic_irqs; i += 4)
 		writel_relaxed(cpumask, base + GIC_DIST_TARGET + i * 4 / 4);
+#endif /* CONFIG_RTK_PLATFORM */
 
 	gic_dist_config(base, gic_irqs, NULL);
 
@@ -729,6 +750,13 @@ void gic_cpu_restore(struct gic_chip_data *gic)
 static int gic_notifier(struct notifier_block *self, unsigned long cmd,	void *v)
 {
 	int i;
+
+#ifdef CONFIG_RTK_XEN_SUPPORT
+	if (xen_domain() && !xen_initial_domain()) {
+		pr_info("%s, skip under domu\n", __func__);
+		return NOTIFY_OK;
+	}
+#endif
 
 	for (i = 0; i < CONFIG_ARM_GIC_MAX_NR; i++) {
 #ifdef CONFIG_GIC_NON_BANKED

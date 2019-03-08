@@ -651,6 +651,44 @@ static int __init __fdt_scan_reserved_mem(unsigned long node, const char *uname,
 	return 0;
 }
 
+#ifdef CONFIG_RTK_TRACER
+static int __init __fdt_reserve_rtk_trace_memory(unsigned long node, const char *uname, int depth, void *data)
+{
+	const __be32 *reg, *endp;
+	int l;
+	u64 base, size;
+	const char *status;
+
+	if (strncmp(uname, "rtktrace", 8) != 0)
+		return 0;
+
+	status = of_get_flat_dt_prop(node, "status", NULL);
+	if (status && strcmp(status, "okay") != 0 && strcmp(status, "ok") != 0)
+		return 0;
+
+	reg = of_get_flat_dt_prop(node, "reg", &l);
+
+	if (reg == NULL)
+		return 0;
+
+	endp = reg + (l / sizeof(__be32));
+
+	while ((endp - reg) >= (dt_root_addr_cells + dt_root_size_cells)) {
+
+		base = dt_mem_next_cell(dt_root_addr_cells, &reg);
+		size = dt_mem_next_cell(dt_root_size_cells, &reg);
+
+		if (size != 0 && memblock_is_memory(base)) {
+			pr_info("%s, reserveing base:0x%lx size:0x%lx\n", __func__, (unsigned long)base, (unsigned long)size);
+			memblock_reserve(base, size);
+		}
+	}
+
+	return 0;
+}
+#endif /* CONFIG_RTK_TRACER */
+
+
 /**
  * early_init_fdt_scan_reserved_mem() - create reserved memory regions
  *
@@ -675,6 +713,9 @@ void __init early_init_fdt_scan_reserved_mem(void)
 	}
 
 	of_scan_flat_dt(__fdt_scan_reserved_mem, NULL);
+#ifdef CONFIG_RTK_TRACER
+	of_scan_flat_dt(__fdt_reserve_rtk_trace_memory, NULL);
+#endif
 	fdt_init_reserved_mem();
 }
 

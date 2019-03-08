@@ -48,6 +48,20 @@
 	msr	daif, \flags
 	.endm
 
+#ifdef CONFIG_RTK_PLATFORM
+/*
+* Save/disable and restore interrupts.
+*/
+	.macro  save_and_disable_irqs, olddaif
+	mrs     \olddaif, daif
+	disable_irq
+	.endm
+
+	.macro  restore_irqs, olddaif
+	msr     daif, \olddaif
+	.endm
+#endif /* CONFIG_RTK_PLATFORM */
+
 	/* Only on aarch64 pstate, PSR_D_BIT is different for aarch32 */
 	.macro	inherit_daif, pstate:req, tmp:req
 	and	\tmp, \pstate, #(PSR_D_BIT | PSR_A_BIT | PSR_I_BIT | PSR_F_BIT)

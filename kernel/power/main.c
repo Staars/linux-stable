@@ -818,6 +818,11 @@ static int __init pm_init(void)
 	if (error)
 		return error;
 	pm_print_times_init();
+#ifdef CONFIG_RTK_PLATFORM //FIXME: acquire wakelock to prevent system from entering suspend state
+#ifndef CONFIG_ARCH_RTD119X
+    pm_wake_lock("rtk_awake");
+#endif
+#endif
 	return pm_autosleep_init();
 }
 
