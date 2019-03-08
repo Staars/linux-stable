@@ -581,7 +581,7 @@ static int enter_state(suspend_state_t state)
 	}
 
 	if (state == PM_SUSPEND_MEM){
-		sys_sync();
+		ksys_sync();
 #ifdef CONFIG_AHCI_RTK
 		if (rtk_sata_dev_task != NULL) {
 			wake_up_process(rtk_sata_dev_task);
