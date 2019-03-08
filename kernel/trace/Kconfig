@@ -87,6 +87,12 @@ config RING_BUFFER_ALLOW_SWAP
 	 Allow the use of ring_buffer_swap_cpu.
 	 Adds a very slight overhead to tracing when enabled.
 
+config RTK_TRACER
+	bool "RTK tracer"
+	default y if DEBUG_KERNEL
+	help
+	  RTK event tracer.
+
 config PREEMPTIRQ_TRACEPOINTS
 	bool
 	depends on TRACE_PREEMPT_TOGGLE || TRACE_IRQFLAGS
