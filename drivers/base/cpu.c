@@ -25,6 +25,13 @@
 
 static DEFINE_PER_CPU(struct device *, cpu_sys_devices);
 
+#ifndef CONFIG_ARCH_RTD119X
+#ifdef CONFIG_RTK_PLATFORM
+extern void rtk_cpu_power_down(int cpu);
+extern void rtk_cpu_power_up(int cpu);
+#endif /* CONFIG_RTK_PLATFORM */
+#endif
+
 static int cpu_subsys_match(struct device *dev, struct device_driver *drv)
 {
 	/* ACPI style match is the only one that may succeed. */
@@ -55,6 +62,12 @@ static int cpu_subsys_online(struct device *dev)
 	if (from_nid == NUMA_NO_NODE)
 		return -ENODEV;
 
+#ifndef CONFIG_ARCH_RTD119X
+#ifdef CONFIG_RTK_PLATFORM
+	rtk_cpu_power_up(cpuid);
+#endif /* CONFIG_RTK_PLATFORM */
+#endif
+
 	ret = cpu_up(cpuid);
 	/*
 	 * When hot adding memory to memoryless node and enabling a cpu
@@ -69,7 +82,18 @@ static int cpu_subsys_online(struct device *dev)
 
 static int cpu_subsys_offline(struct device *dev)
 {
+#ifdef CONFIG_ARCH_RTD119X
 	return cpu_down(dev->id);
+#else
+#ifdef CONFIG_RTK_PLATFORM
+	int ret = 0;
+	ret = cpu_down(dev->id);
+	rtk_cpu_power_down(dev->id);
+	return ret;
+#else
+	return cpu_down(dev->id);
+#endif /* CONFIG_RTK_PLATFORM */
+#endif
 }
 
 void unregister_cpu(struct cpu *cpu)
