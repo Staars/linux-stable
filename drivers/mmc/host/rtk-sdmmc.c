@@ -490,6 +490,7 @@ static int rtk_sdmmc_pm_resume(struct device *dev)
 	struct mmc_host *mmc = dev_get_drvdata(dev);
 	struct rtk_sdmmc_host *rtk_host = mmc_priv(mmc);
 	void __iomem *pll_base = rtk_host->pll;
+	void __iomem *sdmmc_base = rtk_host->sdmmc;
 
 	if (get_RTK_PM_STATE() == PM_SD_SUSPEND_STANDBY)
 		printk(KERN_ERR "[SD] Realtek SD card reader idle resume OK!!\n");
@@ -560,10 +561,10 @@ static int rtk_sdmmc_pm_resume(struct device *dev)
 	ret = pm_runtime_force_resume(dev);
 	timer_setup(&rtk_host->timer, rtk_sdmmc_timeout,0);
 #if defined(CONFIG_ARCH_RTD129x) || defined(CONFIG_ARCH_RTD119X)
-	timer_setup(&rtk_host->plug_timer, rtk_sdmmc_plug, ,0);
+	timer_setup(&rtk_host->plug_timer, rtk_sdmmc_plug, 0);
 #endif
 #ifdef CMD25_WO_STOP_COMMAND
-	timer_setup(&rtk_host->rtk_sdmmc_stop_cmd, rtk_sdmmc_cmd12_fun, ,0);
+	timer_setup(&rtk_host->rtk_sdmmc_stop_cmd, rtk_sdmmc_cmd12_fun, 0);
 #endif
 	rtk_sdmmc_sync(rtk_host);
 #if defined(CONFIG_ARCH_RTD129x) || defined(CONFIG_ARCH_RTD119X)
