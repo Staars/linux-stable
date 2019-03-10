@@ -100,3 +100,11 @@ void arch_invalidate_pmem(void *addr, size_t size)
 }
 EXPORT_SYMBOL_GPL(arch_invalidate_pmem);
 #endif
+
+/*
+ * Additional functions defined in assembly.
+ */
+#ifdef CONFIG_RTK_PLATFORM
+EXPORT_SYMBOL(flush_cache_all);
+#endif /* CONFIG_RTK_PLATFORM */
+EXPORT_SYMBOL(flush_icache_range);

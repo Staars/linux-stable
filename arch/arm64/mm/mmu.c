@@ -659,6 +659,19 @@ void __init paging_init(void)
 		      - PAGE_SIZE);
 }
 
+#ifdef CONFIG_RTK_PLATFORM
+/*
+ * Enable the identity mapping to allow the MMU disabling.
+ */
+void setup_mm_for_reboot(void)
+{
+       cpu_set_reserved_ttbr0();
+       flush_tlb_all();
+       cpu_set_idmap_tcr_t0sz();
+       cpu_switch_mm(idmap_pg_dir, &init_mm);
+}
+#endif /* CONFIG_RTK_PLATFORM */
+
 /*
  * Check whether a kernel address is valid (derived from arch/x86/).
  */
