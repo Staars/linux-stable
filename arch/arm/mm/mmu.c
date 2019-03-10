@@ -1124,6 +1124,9 @@ void __init debug_ll_io_init(void)
 	map.virtual &= PAGE_MASK;
 	map.length = PAGE_SIZE;
 	map.type = MT_DEVICE;
+#if defined(CONFIG_RTK_PLATFORM)
+	create_mapping(&map);
+#else
 	iotable_init(&map, 1);
 }
 #endif
