@@ -240,7 +240,7 @@ static struct shutdown_handler shutdown_handlers[] = {
 	{ "poweroff",	true,	do_poweroff },
 	{ "halt",	false,	do_poweroff },
 	{ "reboot",	true,	do_reboot   },
-#ifdef CONFIG_HIBERNATE_CALLBACKS || defined(CONFIG_RTK_XEN_SUPPORT)
+#if defined(CONFIG_HIBERNATE_CALLBACKS) || defined(CONFIG_RTK_XEN_SUPPORT)
 	{ "suspend",	true,	do_suspend  },
 #endif
 };
