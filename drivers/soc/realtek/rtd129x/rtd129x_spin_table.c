@@ -194,7 +194,7 @@ static void smp_spin_table_cpu_die(unsigned int cpu)
 	}
 
 	cpu_hotplug[cpu] = 1;
-	/*flush_cache_all(); removed from kernel since 4.2 */
+	flush_cache_all(); /*removed from kernel since 4.2 */
 	cpu_install_idmap(); /*setup_mm_for_reboot();*/
 	cpu_do_lowpower(cpu_release_addr[cpu]);
 }
