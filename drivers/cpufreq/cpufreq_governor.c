@@ -244,6 +244,8 @@ unsigned int dbs_update(struct cpufreq_policy *policy)
 
 	policy_dbs->idle_periods = idle_periods;
 
+#endif /* CONFIG_ARM_REALTEK_XEN_CPULOAD */
+
 	return max_load;
 }
 EXPORT_SYMBOL_GPL(dbs_update);

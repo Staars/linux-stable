@@ -169,7 +169,7 @@ static void rtk_trace_write_data(uint64_t data, struct rtk_trace_layout *start)
 
 static void rtk_trace_write_timestamp(struct rtk_trace_layout *start)
 {
-	start->timestamp = sched_clock();
+	start->timestamp = local_clock();
 }
 
 static void uncached_logk_pc_idx(enum logk_event_type log_type, uint64_t caller,
@@ -194,7 +194,7 @@ static void uncached_logk_timestamp(int idx)
 {
 	unsigned long long timestamp;
 
-	timestamp = sched_clock();
+	timestamp = local_clock();
 	uncached_logk_pc_idx(LOGK_TIMESTAMP|LOGTYPE_NOPC,
 			(uint64_t)lower_32_bits(timestamp),
 			(uint64_t)upper_32_bits(timestamp), idx);
