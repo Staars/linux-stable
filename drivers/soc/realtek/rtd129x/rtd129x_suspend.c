@@ -333,7 +333,7 @@ static int notrace rtk_iso_suspend(unsigned long param)
 
 	pr_info("[%s] Flush Cache ...\n", DEV_NAME);
 
-	/*flush_cache_all(); out since 4.2*/
+	flush_cache_all(); /*out since 4.2*/
 
 #ifdef CONFIG_SMP
 	dsb(ishst);
@@ -510,7 +510,7 @@ static int rtk_suspend_to_ram(void)
 
 	rtk_suspend_wakeup_acpu();
 
-	/*flush_cache_all();  out since 4.2*/
+	flush_cache_all();  /*out since 4.2*/
 
 	mdelay(5);
 
