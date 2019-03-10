@@ -55,7 +55,12 @@ struct sync_file {
 
 #define POLL_ENABLED 0
 
+#ifdef CONFIG_RTK_PLATFORM
+struct sync_file *sync_file_create(struct fence *fence);
+struct sync_file *sync_file_fdget(int fd);
+#else
 struct sync_file *sync_file_create(struct dma_fence *fence);
+#endif
 struct dma_fence *sync_file_get_fence(int fd);
 char *sync_file_get_name(struct sync_file *sync_file, char *buf, int len);
 
