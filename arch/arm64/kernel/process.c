@@ -430,7 +430,7 @@ __notrace_funcgraph struct task_struct *__switch_to(struct task_struct *prev,
 	entry_task_switch(next);
 	uao_thread_switch(next);
 #ifdef CONFIG_RTK_TRACER
-	uncached_logk_pc(LOGK_CTXID, (void*)sched_clock(), (void*)(uint64_t)task_pid_nr(next));
+	uncached_logk_pc(LOGK_CTXID, (void*)local_clock(), (void*)(uint64_t)task_pid_nr(next));
 #endif
 
 	/*
