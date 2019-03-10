@@ -364,6 +364,7 @@ static int ahci_rtk_suspend(struct device *dev)
 
 	dev_info(dev, "enter %s\n", __func__);
 
+#ifdef CONFIG_SUSPEND
 	rc = ahci_platform_suspend_host(dev);
 	if (rc)
 		return rc;
@@ -389,7 +390,7 @@ static int ahci_rtk_suspend(struct device *dev)
 				break;
 		}
 	}
-
+#endif /* CONFIG_SUSPEND */
 	dev_info(dev, "exit %s\n", __func__);
 	return 0;
 }
@@ -423,6 +424,8 @@ static int ahci_rtk_resume(struct device *dev)
 		gpio_free(power_io);
 	}
 
+#ifdef CONFIG_SUSPEND
+
 	if (RTK_PM_STATE == PM_SUSPEND_STANDBY) {
 		ahci_platform_enable_clks(hpriv);
 		ahci_dev->state = RUNNING;
@@ -450,9 +453,12 @@ static int ahci_rtk_resume(struct device *dev)
 		ahci_dev->state = RESUME;
 		rtk_sata_init(hpriv);
 	}
+
 	rc = ahci_platform_resume_host(dev);
 	if (rc)
 		goto disable_resources;
+
+#endif /* CONFIG_SUSPEND */
 
 	/* We resumed so update PM runtime state */
 	pm_runtime_disable(dev);
