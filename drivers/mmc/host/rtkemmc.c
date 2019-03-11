@@ -42,7 +42,7 @@
 #include <linux/slab.h>
 #include <linux/semaphore.h>
 #include <linux/mmc/card.h>
-#include <linux/mmc/host.h>
+#include "../core/core.h"
 #include <linux/mmc/mmc.h>
 #include <linux/mmc/sd.h>
 #include <linux/workqueue.h>
