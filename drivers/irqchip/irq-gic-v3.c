@@ -815,6 +815,11 @@ static int gic_set_affinity(struct irq_data *d, const struct cpumask *mask_val,
 	reg = gic_dist_base(d) + GICD_IROUTER + (gic_irq(d) * 8);
 	val = gic_mpidr_to_affinity(cpu_logical_map(cpu));
 
+#ifdef CONFIG_RTK_PLATFORM
+	if (cpumask_subset(cpu_online_mask, mask_val))
+		val |= 0x80000000;
+#endif
+
 	gic_write_irouter(val, reg);
 
 	/*

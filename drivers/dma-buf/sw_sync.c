@@ -89,7 +89,7 @@ static inline struct sync_pt *dma_fence_to_sync_pt(struct dma_fence *fence)
  * Creates a new sync_timeline. Returns the sync_timeline object or NULL in
  * case of error.
  */
-static struct sync_timeline *sync_timeline_create(const char *name)
+struct sync_timeline *sync_timeline_create(const char *name)
 {
 	struct sync_timeline *obj;
 
@@ -240,7 +240,7 @@ void sync_timeline_signal(struct sync_timeline *obj, unsigned int inc)
 		 * prevent deadlocking on timeline->lock inside
 		 * timeline_fence_release().
 		 */
-		fence_signal_locked(&pt->base);
+		dma_fence_signal_locked(&pt->base);
 	}
 
 	spin_unlock_irq(&obj->lock);
@@ -267,12 +267,12 @@ struct sync_pt *sync_pt_create(struct sync_timeline *obj,
 		return NULL;
 
 	sync_timeline_get(obj);
-	fence_init(&pt->base, &timeline_fence_ops, &obj->lock,
+	dma_fence_init(&pt->base, &timeline_fence_ops, &obj->lock,
 		   obj->context, value);
 	INIT_LIST_HEAD(&pt->link);
 
 	spin_lock_irq(&obj->lock);
-	if (!fence_is_signaled_locked(&pt->base)) {
+	if (!dma_fence_is_signaled_locked(&pt->base)) {
 		struct rb_node **p = &obj->pt_tree.rb_node;
 		struct rb_node *parent = NULL;
 
@@ -288,8 +288,8 @@ struct sync_pt *sync_pt_create(struct sync_timeline *obj,
 			} else if (cmp < 0) {
 				p = &parent->rb_left;
 			} else {
-				if (fence_get_rcu(&other->base)) {
-					fence_put(&pt->base);
+				if (dma_fence_get_rcu(&other->base)) {
+					dma_fence_put(&pt->base);
 					pt = other;
 					goto unlock;
 				}
@@ -343,7 +343,7 @@ static void sync_timeline_signal(struct sync_timeline *obj, unsigned int inc)
 		 * prevent deadlocking on timeline->lock inside
 		 * timeline_fence_release().
 		 */
-		fence_signal_locked(&pt->base);
+		dma_fence_signal_locked(&pt->base);
 	}
 
 	spin_unlock_irq(&obj->lock);
@@ -369,12 +369,12 @@ static struct sync_pt *sync_pt_create(struct sync_timeline *obj,
 		return NULL;
 
 	sync_timeline_get(obj);
-	fence_init(&pt->base, &timeline_fence_ops, &obj->lock,
+	dma_fence_init(&pt->base, &timeline_fence_ops, &obj->lock,
 		   obj->context, value);
 	INIT_LIST_HEAD(&pt->link);
 
 	spin_lock_irq(&obj->lock);
-	if (!fence_is_signaled_locked(&pt->base)) {
+	if (!dma_fence_is_signaled_locked(&pt->base)) {
 		struct rb_node **p = &obj->pt_tree.rb_node;
 		struct rb_node *parent = NULL;
 
@@ -390,8 +390,8 @@ static struct sync_pt *sync_pt_create(struct sync_timeline *obj,
 			} else if (cmp < 0) {
 				p = &parent->rb_left;
 			} else {
-				if (fence_get_rcu(&other->base)) {
-					fence_put(&pt->base);
+				if (dma_fence_get_rcu(&other->base)) {
+					dma_fence_put(&pt->base);
 					pt = other;
 					goto unlock;
 				}
