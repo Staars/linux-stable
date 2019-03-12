@@ -123,20 +123,20 @@ EXPORT_SYMBOL_GPL(gov_update_cpu_data);
 
 unsigned int dbs_update(struct cpufreq_policy *policy)
 {
+#ifdef CONFIG_ARM_REALTEK_XEN_CPULOAD
+        unsigned int max_load = 0;
+        struct xen_rtk_cpu_load xen_load;
+
+        HYPERVISOR_rtk_hypercall_op(XENRTK_cpu_load, &xen_load);
+        max_load = xen_load.max_load;
+
+#else /* CONFIG_ARM_REALTEK_XEN_CPULOAD */
+
 	struct policy_dbs_info *policy_dbs = policy->governor_data;
 	struct dbs_data *dbs_data = policy_dbs->dbs_data;
 	unsigned int ignore_nice = dbs_data->ignore_nice_load;
 	unsigned int max_load = 0, idle_periods = UINT_MAX;
 	unsigned int sampling_rate, io_busy, j;
-
-#ifdef CONFIG_ARM_REALTEK_XEN_CPULOAD
-	unsigned int max_load = 0;
-	struct xen_rtk_cpu_load xen_load;
-
-	HYPERVISOR_rtk_hypercall_op(XENRTK_cpu_load, &xen_load);
-	max_load = xen_load.max_load;
-
-#else /* CONFIG_ARM_REALTEK_XEN_CPULOAD */
 
 	/*
 	 * Sometimes governors may use an additional multiplier to increase
