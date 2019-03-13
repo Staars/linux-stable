@@ -1056,6 +1056,11 @@ struct dwc3 {
 
 	u32			fladj;
 	u32			irq_gadget;
+
+#ifdef CONFIG_USB_RTK_DWC3_DRD_MODE
+	bool has_gadget;
+	bool has_xhci;
+#endif
 	u32			otg_irq;
 	u32			current_otg_role;
 	u32			desired_otg_role;
@@ -1161,6 +1166,10 @@ struct dwc3 {
 	unsigned		dis_rxdet_inp3_quirk:1;
 	unsigned		dis_u2_freeclk_exists_quirk:1;
 	unsigned		dis_del_phy_power_chg_quirk:1;
+#ifdef CONFIG_USB_DWC3_RTK
+	unsigned		dis_ss_park_mode:1;
+	unsigned		dis_hs_park_mode:1;
+#endif
 	unsigned		dis_tx_ipgap_linecheck_quirk:1;
 
 	unsigned		tx_de_emphasis_quirk:1;

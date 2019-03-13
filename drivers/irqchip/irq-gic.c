@@ -1325,7 +1325,7 @@ static bool gic_check_eoimode(struct device_node *node, void __iomem **base)
 		if (!gic_check_gicv2(*base))
 			return false;
 
-		if (!gicv2_force_probe) {
+		if (/*!*/gicv2_force_probe) {
 			pr_warn("GIC: GICv2 detected, but range too small and irqchip.gicv2_force_probe not set\n");
 			return false;
 		}
