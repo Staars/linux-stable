@@ -3170,7 +3170,7 @@ static const struct mmc_host_ops rtk_sdmmc_ops ={
 #ifdef CMD25_WO_STOP_COMMAND
 static void rtk_sdmmc_cmd12_fun(struct timer_list  *t)
 {
-	struct rtk_sdmmc_host *rtk_host = from_timer(rtk_host, t, timer);
+	struct rtk_sdmmc_host *rtk_host = from_timer(rtk_host, t, rtk_sdmmc_stop_cmd);
 	if (sd_in_receive_data_state && rtk_host->rtk_sdmmc_cmd12 && rtk_host) {
 
 		if ( down_trylock(&cr_sd_sem) != 0 ) {  // @rtk_sdmmc_cmd12_fun, lock fail
@@ -3293,7 +3293,7 @@ static void rtk_sdmmc_plug(struct timer_list  *t)
 #ifdef CONFIG_ARCH_RTD119X
 	unsigned long timeout = 0;
 #endif
-	struct rtk_sdmmc_host *rtk_host = from_timer(rtk_host, t, timer);
+	struct rtk_sdmmc_host *rtk_host = from_timer(rtk_host, t, plug_timer);
 	void __iomem *sdmmc_base = rtk_host->sdmmc;
 #if defined(CONFIG_ARCH_RTD129x)
 	unsigned long flags2;
