@@ -580,9 +580,9 @@ static int rtk_pcie2_hw_initial(struct device *dev)
 	}
 
 	/*phy mdio setting*/
-	size = of_property_count_u32_elems(dev->of_node, "phys");
+	size = of_property_count_u32_elems(dev->of_node, "phys_c");
 	phy = kmalloc(size * sizeof(u32), GFP_KERNEL);
-	of_property_read_u32_array(dev->of_node, "phys", phy, size);
+	of_property_read_u32_array(dev->of_node, "phy_cs", phy, size);
 	for (i = 0; i < size; i++) {
 		rtk_pci2_ctrl_write(0xC1C, phy[i]);
 		mdelay(1);
