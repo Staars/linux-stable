@@ -250,11 +250,13 @@ done:
 	return 0;
 }
 
+#ifdef CONFIG_SUSPEND
 static const struct dev_pm_ops rtk_busfreq_pm_ops = {
 	SET_LATE_SYSTEM_SLEEP_PM_OPS(rtk_busfreq_suspend, rtk_busfreq_resume)
 	.runtime_suspend = rtk_busfreq_runtime_suspend,
 	.runtime_resume = rtk_busfreq_runtime_resume,
 };
+#endif
 
 struct rtk_busfreq_initdata {
 	struct device_node *parent_np;
@@ -394,7 +396,9 @@ static struct platform_driver rtk_busfreq_driver = {
 	.driver = {
 		.name  = "rtk-busfreq",
 		.of_match_table = rtk_busfreq_ids,
+#ifdef CONFIG_SUSPEND
 		.pm = &rtk_busfreq_pm_ops,
+#endif
 	},
 	.probe = rtk_busfreq_probe,
 };
