@@ -539,8 +539,8 @@ static const struct of_device_id rtk_rtc_ids[] = {
 	{ .compatible = "realtek,rtk-rtc" },
 	{},
 };
-MODULE_DEVICE_TABLE(of, rtd1295_watchdog_match);
-
+/* STAARS MODULE_DEVICE_TABLE(of, rtd1295_watchdog_match);
+*/
 static struct platform_driver rtk_rtc_driver = {
 	.probe = rtk_rtc_probe,
 	.remove = rtk_rtc_remove,
