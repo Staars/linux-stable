@@ -120,11 +120,13 @@ static int __maybe_unused mux_set_affinity(struct irq_data *d,
 	struct irq_chip *chip = irq_get_chip(mux_data->irq);
 	struct irq_data *data = irq_get_irq_data(mux_data->irq);
 
-	if (chip && chip->irq_set_affinity)
+	if (chip && chip->irq_set_affinity){
+		irq_data_update_effective_affinity(d, mask_val);
 		return chip->irq_set_affinity(data, mask_val, force);
-	else
+	}
+	else{
 		return -EINVAL;
-
+	}
 }
 #endif
 
