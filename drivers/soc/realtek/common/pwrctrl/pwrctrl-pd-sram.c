@@ -33,6 +33,9 @@ static DEFINE_SPINLOCK(rtk_pc_lock);
 #define pwr5_reg(_spd) (sram_reg(_spd) + SRAM_PWR5)
 #define iso_reg(_spd) ((_spd)->base + (_spd)->iso_offset)
 
+/*FIXME*/
+unsigned long pcon;
+
 static int of_device_reset(struct device_node *np, const char *rstn_name)
 {
 	struct reset_control *rstc;
@@ -152,9 +155,9 @@ const struct power_control_ops rtk_sram_ops = {
 	.is_powered_on = rtk_sram_is_powered_on,
 };
 
-static void rtk_sram_async_power_off_timeout(unsigned long data)
+static void rtk_sram_async_power_off_timeout(struct timer_list *t)
 {
-	struct power_control *pctrl = (struct power_control *)data;
+	struct power_control *pctrl = (struct power_control *)pcon; /*FIXME*/
 	struct rtk_sram_pd *spd = pc_to_rtk_sram_pd(pctrl);
 
 	spin_lock(&spd->timer_lock);
@@ -243,9 +246,14 @@ int rtk_sram_pd_init(struct pwrctrl_pd *pd, void *initdata)
 		WARN_ON(spd->expired_time == 0);
 		pr_debug("%s: %s: init_timer\n", pd->pc.name, __func__);
 		spin_lock_init(&spd->timer_lock);
-		init_timer(&spd->timer);
+
+/*		init_timer(&spd->timer);
 		spd->timer.function = rtk_sram_async_power_off_timeout;
-		spd->timer.data = (unsigned long)&pd->pc;
+		spd->timer.data = (unsigned long)&pd->pc;*/
+
+		pcon = (unsigned long)&pd->pc;
+
+		timer_setup(&spd->timer, rtk_sram_async_power_off_timeout, 0);
 		spd->pm_nb.notifier_call = rtk_sram_async_power_notifier;
 		pwrctrl_pd_register_pm_notifier(&spd->pm_nb);
 	}
