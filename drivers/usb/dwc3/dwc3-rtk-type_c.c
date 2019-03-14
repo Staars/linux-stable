@@ -1962,7 +1962,7 @@ static const struct of_device_id rtk_dwc3_type_c_match[] = {
 MODULE_DEVICE_TABLE(of, rtk_dwc3_type_c_match);
 #endif
 
-#ifdef CONFIG_PM_SLEEP
+#if defined(CONFIG_PM_SLEEP) && defined(CONFIG_SUSPEND)
 static int dwc3_rtk_type_c_prepare(struct device *dev) {
 	struct type_c_data *type_c = dev_get_drvdata(dev);
 	int ret = 0;
@@ -2113,7 +2113,9 @@ static struct platform_driver dwc3_rtk_type_c_driver = {
 	.driver		= {
 		.name	= "rtk-dwc3-type_c",
 		.of_match_table = of_match_ptr(rtk_dwc3_type_c_match),
+#ifdef CONFIG_SUSPEND
 		.pm = DEV_PM_OPS,
+#endif
 	},
 };
 
