@@ -391,7 +391,7 @@ static const struct of_device_id rtk_dwc3_match[] = {
 MODULE_DEVICE_TABLE(of, rtk_dwc3_match);
 #endif
 
-#ifdef CONFIG_PM_SLEEP
+#if defined(CONFIG_PM_SLEEP) && defined(CONFIG_SUSPEND)
 static int dwc3_rtk_suspend(struct device *dev)
 {
 	dev_info(dev, "[USB] Enter %s", __func__);
@@ -440,6 +440,7 @@ static const struct dev_pm_ops dwc3_rtk_dev_pm_ops = {
 	SET_SYSTEM_SLEEP_PM_OPS(dwc3_rtk_suspend, dwc3_rtk_resume)
 };
 
+
 #define DEV_PM_OPS	(&dwc3_rtk_dev_pm_ops)
 #else
 #define DEV_PM_OPS	NULL
@@ -451,7 +452,9 @@ static struct platform_driver dwc3_rtk_driver = {
 	.driver		= {
 		.name	= "rtk-dwc3",
 		.of_match_table = of_match_ptr(rtk_dwc3_match),
+#ifdef CONFIG_SUSPEND
 		.pm	= DEV_PM_OPS,
+#endif
 	},
 	.shutdown 	= dwc3_rtk_shutdown,
 };

@@ -1657,7 +1657,7 @@ static const struct of_device_id rtk_usb_manager_match[] = {
 MODULE_DEVICE_TABLE(of, rtk_usb_manager_match);
 #endif
 
-#ifdef CONFIG_PM_SLEEP
+#if defined(CONFIG_PM_SLEEP) && defined(CONFIG_SUSPEND)
 
 static int rtk_usb_manager_prepare(struct device *dev) {
 	struct manager_data *data = dev_get_drvdata(dev);
@@ -1773,7 +1773,9 @@ static struct platform_driver rtk_usb_manager_driver = {
 	.driver		= {
 		.name	= "rtk-usb-manager",
 		.of_match_table = of_match_ptr(rtk_usb_manager_match),
+#ifdef CONFIG_SUSPEND
 		.pm = DEV_PM_OPS,
+#endif
 	},
 	.shutdown = rtk_usb_manager_shutdown,
 };
