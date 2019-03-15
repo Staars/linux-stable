@@ -418,7 +418,8 @@ static int rtk_gspi_probe(struct platform_device *pdev)
 	struct rtk_gspi *hw;
 	struct spi_master *master;
 	struct clk *clk = clk_get(&pdev->dev, NULL);
-	struct reset_control *rstc = reset_control_get(&pdev->dev, NULL);
+
+	struct reset_control *rstc = of_reset_control_get(pdev->dev.of_node, NULL);
 
 	int err = -ENODEV;
 
@@ -508,7 +509,7 @@ static int rtk_gspi_remove(struct platform_device *dev)
 	return 0;
 }
 
-#ifdef CONFIG_PM
+#if defined(CONFIG_PM) && defined(CONFIG_SUSPEND)
 
 static int rtk_gspi_suspend(struct device *dev)
 {
