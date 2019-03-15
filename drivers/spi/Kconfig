@@ -789,6 +789,12 @@ config SPI_TLE62X0
 # Add new SPI protocol masters in alphabetical order above this line
 #
 
+config SPI_RTK129X
+    tristate "Realtek SPI"
+    select SPI_BITBANG
+    help
+        This driver supports GSPI on Realtek SoC
+
 endif # SPI_MASTER
 
 #
