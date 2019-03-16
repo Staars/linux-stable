@@ -256,6 +256,7 @@ static int ahci_rtk_probe(struct platform_device *pdev)
 	struct reset_control *rst;
 	int id;
 	int i;
+	int num_rsts = 0;
 
 	ahci_dev = devm_kzalloc(dev, sizeof(struct ahci_rtk_dev), GFP_KERNEL);
 	if (!ahci_dev)
@@ -276,9 +277,10 @@ static int ahci_rtk_probe(struct platform_device *pdev)
 		goto memalloc_fail;
 
 	for (i=0; i<MAC_MAX_RST; i++) {
-		rst = of_reset_control_get_by_index(dev->of_node, i);
+		rst = of_reset_control_get_exclusive_by_index(dev->of_node, i);
 		if (IS_ERR(rst))
 			break;
+		num_rsts++; /* iterate later only through the real number of resets*/
 		ahci_dev->rsts[i] = rst;
 		reset_control_deassert(rst);
 	}
@@ -299,8 +301,8 @@ static int ahci_rtk_probe(struct platform_device *pdev)
 		gpio_set_value(desc->power_io, 1);
 		gpio_free(desc->power_io);
 
-		for (i=0; i<MAC_MAX_RST; i++) {
-			rst = of_reset_control_get_by_index(child, i);
+		for (i=0; i<num_rsts; i++) {
+			rst = of_reset_control_get_exclusive_by_index(child, i);
 			if (IS_ERR(rst))
 				break;
 			desc->rsts[i] = rst;
