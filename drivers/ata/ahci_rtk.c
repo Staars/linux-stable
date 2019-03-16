@@ -256,7 +256,7 @@ static int ahci_rtk_probe(struct platform_device *pdev)
 	struct reset_control *rst;
 	int id;
 	int i;
-	int num_rsts = 0;
+	int num_rsts = 1;
 
 	ahci_dev = devm_kzalloc(dev, sizeof(struct ahci_rtk_dev), GFP_KERNEL);
 	if (!ahci_dev)
