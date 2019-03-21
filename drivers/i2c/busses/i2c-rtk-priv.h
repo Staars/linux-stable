@@ -305,3 +305,5 @@ int rtk_i2c_load_message(struct rtk_i2c_handler *handler, unsigned char mode,
 int rtk_i2c_start_xfer(struct rtk_i2c_handler *handler);
 unsigned int rtk_i2c_get_tx_abort_reason(struct rtk_i2c_handler *handler);
 irqreturn_t rtk_i2c_isr(int this_irq, void *dev_id);
+
+int rtk_i2c_dump(struct rtk_i2c_handler *handler);

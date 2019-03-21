@@ -12,7 +12,7 @@
 #ifndef __I2C_RTK_H__
 #define __I2C_RTK_H__
 
-#include "platform.h"
+#include "i2c-rtk-platform.h"
 #include "../algos/i2c-algo-phoenix.h"
 
 #define MODLE_NAME        "rtk_i2c"
