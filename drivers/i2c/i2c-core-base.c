@@ -115,9 +115,10 @@ static int i2c_device_match(struct device *dev, struct device_driver *drv)
 	driver = to_i2c_driver(drv);
 
 	/* Finally an I2C match */
-	if (i2c_match_id(driver->id_table, client))
+	if (i2c_match_id(driver->id_table, client)){
+		
 		return 1;
-
+		}
 	return 0;
 }
 
