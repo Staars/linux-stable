@@ -27,7 +27,7 @@
 #include <linux/file.h>
 #include <linux/console.h>
 #include <linux/platform_device.h>
-#include <linux/fence.h>
+#include <linux/dma-fence.h>
 #include <linux/sync_file.h>
 #include <linux/dma-buf.h>
 #include <uapi/linux/sync_file.h>
