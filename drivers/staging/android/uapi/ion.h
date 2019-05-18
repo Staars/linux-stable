@@ -36,6 +36,7 @@ enum ion_heap_type {
 };
 
 #if defined(CONFIG_ION_RTK)
+typedef int ion_user_handle_t;
 #define ION_HEAP_SYSTEM_MASK		(1 << ION_HEAP_TYPE_SYSTEM)
 #define ION_HEAP_SYSTEM_CONTIG_MASK	(1 << ION_HEAP_TYPE_SYSTEM_CONTIG)
 #define ION_HEAP_CARVEOUT_MASK		(1 << ION_HEAP_TYPE_CARVEOUT)
@@ -98,6 +99,15 @@ struct ion_allocation_data {
 	__u32 fd;
 	__u32 unused;
 };
+
+#if defined(CONFIG_ION_RTK)
+struct ion_phys_data {
+	ion_user_handle_t handle;
+	unsigned long addr;
+	unsigned int len;
+};
+#endif /* CONFIG_ION_RTK */
+
 
 #define MAX_HEAP_NAME			32
 
