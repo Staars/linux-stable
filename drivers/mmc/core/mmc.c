@@ -1291,6 +1291,9 @@ static int mmc_select_hs400(struct mmc_card *card)
 	mmc_set_timing(host, MMC_TIMING_MMC_HS400);
 	mmc_set_bus_speed(card);
 
+	if (host->ops->hs400_complete)
+		host->ops->hs400_complete(host);
+
 	err = mmc_switch_status(card);
 	if (err)
 		goto out_err;
@@ -1300,6 +1303,8 @@ static int mmc_select_hs400(struct mmc_card *card)
 	if(host->ops->dqs_tuning)
 		host->ops->dqs_tuning(host);
 #else
+	return 0;
+
 out_err:
 #endif
 	pr_err("%s: %s failed, error %d\n", mmc_hostname(card->host),
