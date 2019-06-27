@@ -79,8 +79,8 @@ static int  i2c_rtk_xfer(struct i2c_adapter *adap,
 	struct rtk_i2c_handler *handler = i2c_dev->handler;
 	int i = 0;
 	int ret = 0;
-	struct pinctrl *pctrl;
-	struct pinctrl_state *pctrl_state;
+	/*struct pinctrl *pctrl;
+	struct pinctrl_state *pctrl_state;*/
 
 	RTK_DEBUG("%s\n", __func__);
 

@@ -1,8 +1,17 @@
-// SPDX-License-Identifier: GPL-2.0
 /*
  * drivers/staging/android/ion/ion_heap.c
  *
  * Copyright (C) 2011 Google, Inc.
+ *
+ * This software is licensed under the terms of the GNU General Public
+ * License version 2, as published by the Free Software Foundation, and
+ * may be copied, distributed, and modified under those terms.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
  */
 
 #include <linux/err.h>
@@ -11,10 +20,16 @@
 #include <linux/mm.h>
 #include <linux/rtmutex.h>
 #include <linux/sched.h>
-#include <uapi/linux/sched/types.h>
+#include <linux/sched/task.h>
 #include <linux/scatterlist.h>
 #include <linux/vmalloc.h>
 #include "ion.h"
+#include "ion_priv.h"
+
+#if defined(CONFIG_ION_RTK)
+#include "../uapi/ion_rtk.h"
+#include "realtek/ion_rtk_carveout_heap.h"
+#endif
 
 void *ion_heap_map_kernel(struct ion_heap *heap,
 			  struct ion_buffer *buffer)
@@ -25,8 +40,7 @@ void *ion_heap_map_kernel(struct ion_heap *heap,
 	pgprot_t pgprot;
 	struct sg_table *table = buffer->sg_table;
 	int npages = PAGE_ALIGN(buffer->size) / PAGE_SIZE;
-	struct page **pages = vmalloc(array_size(npages,
-						 sizeof(struct page *)));
+	struct page **pages = vmalloc(sizeof(struct page *) * npages);
 	struct page **tmp = pages;
 
 	if (!pages)
@@ -84,6 +98,21 @@ int ion_heap_map_user(struct ion_heap *heap, struct ion_buffer *buffer,
 			offset = 0;
 		}
 		len = min(len, remainder);
+
+		/* 20130208 charleslin: supports noncached mmap for user space */
+#if defined(CONFIG_ION_RTK)
+#if 0
+		if (heap->type == RTK_PHOENIX_ION_HEAP_TYPE_MEDIA ||
+			heap->type == RTK_PHOENIX_ION_HEAP_TYPE_AUDIO ||
+			heap->type == RTK_PHOENIX_ION_HEAP_TYPE_TILER)
+#else
+			if (buffer->flags & ION_FLAG_NONCACHED)
+#endif
+				vma->vm_page_prot = pgprot_noncached(vma->vm_page_prot);
+			else
+				if (!(buffer->flags & ION_FLAG_CACHED))
+					vma->vm_page_prot = pgprot_writecombine(vma->vm_page_prot);
+#endif
 		ret = remap_pfn_range(vma, addr, page_to_pfn(page), len,
 				      vma->vm_page_prot);
 		if (ret)
@@ -242,8 +271,9 @@ static int ion_heap_deferred_free(void *data)
 
 int ion_heap_init_deferred_free(struct ion_heap *heap)
 {
-	struct sched_param param = { .sched_priority = 0 };
-
+	/*struct sched_param param;
+	param.sched_priority = 0;
+*/
 	INIT_LIST_HEAD(&heap->free_list);
 	init_waitqueue_head(&heap->waitqueue);
 	heap->task = kthread_run(ion_heap_deferred_free, heap,
@@ -253,7 +283,7 @@ int ion_heap_init_deferred_free(struct ion_heap *heap)
 		       __func__);
 		return PTR_ERR_OR_ZERO(heap->task);
 	}
-	sched_setscheduler(heap->task, SCHED_IDLE, &param);
+/*	sched_setscheduler(heap->task, SCHED_IDLE, &param); *//*BPI*/
 	return 0;
 }
 
@@ -298,12 +328,104 @@ static unsigned long ion_heap_shrink_scan(struct shrinker *shrinker,
 	return freed;
 }
 
-int ion_heap_init_shrinker(struct ion_heap *heap)
+void ion_heap_init_shrinker(struct ion_heap *heap)
 {
 	heap->shrinker.count_objects = ion_heap_shrink_count;
 	heap->shrinker.scan_objects = ion_heap_shrink_scan;
 	heap->shrinker.seeks = DEFAULT_SEEKS;
 	heap->shrinker.batch = 0;
-
-	return register_shrinker(&heap->shrinker);
+	register_shrinker(&heap->shrinker);
 }
+
+struct ion_heap *ion_heap_create(struct ion_platform_heap *heap_data)
+{
+	struct ion_heap *heap = NULL;
+
+#if defined(CONFIG_ION_RTK)
+	switch ((int)heap_data->type) {
+#else
+	switch (heap_data->type) {
+#endif
+	case ION_HEAP_TYPE_SYSTEM_CONTIG:
+		heap = ion_system_contig_heap_create(heap_data);
+		break;
+	case ION_HEAP_TYPE_SYSTEM:
+		heap = ion_system_heap_create(heap_data);
+		break;
+	case ION_HEAP_TYPE_CARVEOUT:
+		heap = ion_carveout_heap_create(heap_data);
+		break;
+	case ION_HEAP_TYPE_CHUNK:
+		heap = ion_chunk_heap_create(heap_data);
+		break;
+	case ION_HEAP_TYPE_DMA:
+		heap = ion_cma_heap_create(heap_data);
+		break;
+#if defined(CONFIG_ION_RTK)
+	case RTK_PHOENIX_ION_HEAP_TYPE_TILER:
+	case RTK_PHOENIX_ION_HEAP_TYPE_MEDIA:
+	case RTK_PHOENIX_ION_HEAP_TYPE_AUDIO:
+	case RTK_PHOENIX_ION_HEAP_TYPE_SECURE:
+		heap = ion_rtk_carveout_heap_create(heap_data);
+		if (!IS_ERR_OR_NULL(heap))
+			heap->type = heap_data->type;
+		break;
+#endif
+	default:
+		pr_err("%s: Invalid heap type %d\n", __func__,
+		       heap_data->type);
+		return ERR_PTR(-EINVAL);
+	}
+
+	if (IS_ERR_OR_NULL(heap)) {
+		pr_err("%s: error creating heap %s type %d base %lu size %zu\n",
+		       __func__, heap_data->name, heap_data->type,
+		       heap_data->base, heap_data->size);
+		return ERR_PTR(-EINVAL);
+	}
+
+	heap->name = heap_data->name;
+	heap->id = heap_data->id;
+	return heap;
+}
+EXPORT_SYMBOL(ion_heap_create);
+
+void ion_heap_destroy(struct ion_heap *heap)
+{
+	if (!heap)
+		return;
+
+#if defined(CONFIG_ION_RTK)
+	switch ((int)heap->type) {
+#else
+	switch (heap->type) {
+#endif
+	case ION_HEAP_TYPE_SYSTEM_CONTIG:
+		ion_system_contig_heap_destroy(heap);
+		break;
+	case ION_HEAP_TYPE_SYSTEM:
+		ion_system_heap_destroy(heap);
+		break;
+	case ION_HEAP_TYPE_CARVEOUT:
+		ion_carveout_heap_destroy(heap);
+		break;
+	case ION_HEAP_TYPE_CHUNK:
+		ion_chunk_heap_destroy(heap);
+		break;
+	case ION_HEAP_TYPE_DMA:
+		ion_cma_heap_destroy(heap);
+		break;
+#if defined(CONFIG_ION_RTK)
+	case RTK_PHOENIX_ION_HEAP_TYPE_TILER:
+	case RTK_PHOENIX_ION_HEAP_TYPE_MEDIA:
+	case RTK_PHOENIX_ION_HEAP_TYPE_AUDIO:
+	case RTK_PHOENIX_ION_HEAP_TYPE_SECURE:
+		ion_rtk_carveout_heap_destroy(heap);
+		break;
+#endif
+	default:
+		pr_err("%s: Invalid heap type %d\n", __func__,
+		       heap->type);
+	}
+}
+EXPORT_SYMBOL(ion_heap_destroy);
