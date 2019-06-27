@@ -148,7 +148,7 @@ static void rtk_gspi_chipsel(struct spi_device *spi, int value)
 static int rtk_gspi_update_state(struct spi_device *spi,
 				    struct spi_transfer *t)
 {
-	struct rtk_gspi *hw = rtk_gspi_to_hw(spi);
+	/*struct rtk_gspi *hw = rtk_gspi_to_hw(spi);*/
 	struct rtk_gspi_devstate *cs = spi->controller_state;
 	unsigned int hz;
 	unsigned int div;

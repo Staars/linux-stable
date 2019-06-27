@@ -84,29 +84,6 @@
 		};
 	};
 
-	rtk,ion {
-		rtk,ion-heap@8 { /* Audio */
-			compatible = "Realtek,rtk-ion-reserve";
-			reg = <8>;
-			rtk,memory-reserve = <
-				ION_AUDIO_HEAP_PHYS
-				ION_AUDIO_HEAP_SIZE
-				ION_AUDIO_HEAP_FLAG>;
-		};
-
-		rtk,ion-heap@7 { /* TYPE_MEDIA */
-			compatible = "Realtek,rtk-ion-reserve";
-			reg = <7>;
-			rtk,memory-reserve = <
-				ION_MEDIA_HEAP_PHYS1
-				ION_MEDIA_HEAP_SIZE1
-				ION_MEDIA_HEAP_FLAG1
-				ION_MEDIA_HEAP_PHYS2
-				ION_MEDIA_HEAP_SIZE2
-				ION_MEDIA_HEAP_FLAG2>;
-		};
-	};
-
 	/*
 	 * pddrive_nf0, pddrive_nf1, pddrive_nf2, pddrive_nf3, pddrive_nf4 ; for sdr50
 	 * pddrive_nf0, pddrive_nf1, pddrive_nf2, pddrive_nf3, pddrive_nf4 ; for hs200

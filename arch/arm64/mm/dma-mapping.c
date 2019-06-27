@@ -409,7 +409,8 @@ out:
 /********************************************
  * The following APIs are for dummy DMA ops *
  ********************************************/
-
+#ifdef CONFIG_RTK_PLATFORM
+#else
 static void *__dummy_alloc(struct device *dev, size_t size,
 			   dma_addr_t *dma_handle, gfp_t flags,
 			   unsigned long attrs)
@@ -480,6 +481,7 @@ static int __dummy_dma_supported(struct device *hwdev, u64 mask)
 {
 	return 0;
 }
+#endif
 
 #ifdef CONFIG_RTK_PLATFORM
 const struct dma_map_ops dummy_dma_ops = {
@@ -494,8 +496,8 @@ const struct dma_map_ops dummy_dma_ops = {
         .sync_single_for_device = __swiotlb_sync_single_for_device,
         .sync_sg_for_cpu = __swiotlb_sync_sg_for_cpu,
         .sync_sg_for_device = __swiotlb_sync_sg_for_device,
-        .dma_supported = swiotlb_dma_supported,
-        .mapping_error = swiotlb_dma_mapping_error,
+        .dma_supported = __swiotlb_dma_supported,
+        .mapping_error = __swiotlb_dma_mapping_error,
 };
 #else
 const struct dma_map_ops dummy_dma_ops = {

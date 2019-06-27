@@ -1299,8 +1299,9 @@ static int mmc_select_hs400(struct mmc_card *card)
 #ifdef CONFIG_MMC_RTK_EMMC
 	if(host->ops->dqs_tuning)
 		host->ops->dqs_tuning(host);
-#endif
+#else
 out_err:
+#endif
 	pr_err("%s: %s failed, error %d\n", mmc_hostname(card->host),
 	       __func__, err);
 	return err;
@@ -1648,6 +1649,7 @@ bus_speed:
 int rtkemmc_select_timing(struct mmc_card *card)
 {
         mmc_select_timing(card);
+	return 0;
 }
 EXPORT_SYMBOL(rtkemmc_select_timing);
 #endif
@@ -1699,6 +1701,7 @@ static int mmc_hs200_tuning(struct mmc_card *card)
 int rtkemmc_hs200_tuning(struct mmc_card *card)
 {
          mmc_hs200_tuning(card);
+	return 0;
 }
 EXPORT_SYMBOL(rtkemmc_hs200_tuning);
 #endif

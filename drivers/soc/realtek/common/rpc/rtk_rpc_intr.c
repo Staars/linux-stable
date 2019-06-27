@@ -25,7 +25,7 @@
 #include <linux/io.h>
 #include <linux/uaccess.h>
 #include <linux/kthread.h>
-
+#include <linux/kmemleak.h>
 
 #include "rtk_rpc.h"
 
@@ -220,7 +220,7 @@ ssize_t r_program_write(RPC_DEV_EXTRA *extra, RPC_DEV *dev, char *buf, size_t co
 	size_t r;
 	ssize_t ret = 0;
 	uint32_t ptmp;
-	int rpc_ring_size = dev->ringEnd - dev->ringStart;
+	/*int rpc_ring_size = dev->ringEnd - dev->ringStart;*/
 	RPC_STRUCT *rpc;
 
 	rpc = (RPC_STRUCT *)(buf);
@@ -320,7 +320,7 @@ void rpc_ion_handler(RPC_DEV_EXTRA *extra)
 	struct ion_handle *handle = NULL;
 	ion_phys_addr_t phys_addr;
 	unsigned long reply_value = 0;
-	size_t len;
+	/*size_t len;*/
 	size_t align;
 	size_t alloc_val;
 	char tmpbuf[sizeof(RPC_STRUCT) + sizeof(uint32_t)];
@@ -328,7 +328,7 @@ void rpc_ion_handler(RPC_DEV_EXTRA *extra)
 	char replybuf[sizeof(RPC_STRUCT) + 2*sizeof(uint32_t)];
 	RPC_STRUCT *rpc;
 	RPC_STRUCT *rrpc;
-	unsigned long map_addr;
+	/*unsigned long map_addr;*/
 	RPC_DEV_EXTRA *extra_w = &rpc_intr_extra[0];
 	r_program_entry_t *rpc_entry;
 
@@ -361,7 +361,7 @@ void rpc_ion_handler(RPC_DEV_EXTRA *extra)
 			ION_FLAG_NONCACHED | ION_FLAG_SCPUACC | ION_FLAG_HWIPACC | ION_FLAG_ACPUACC);
 
 		if (IS_ERR(handle)) {
-			pr_err("[%s] ERROR: ion_alloc fail %d\n", __func__, (int *) handle);
+			pr_err("[%s] ERROR: ion_alloc fail %n\n", __func__, (int *) handle);
 		}
 		if (ion_phys(fw_rpc_ion_client, handle, &phys_addr, &alloc_val) != 0) {
 			pr_err("[%s] ERROR: ion_phys fail\n", __func__);
@@ -384,7 +384,7 @@ void rpc_ion_handler(RPC_DEV_EXTRA *extra)
 #endif
 		rpc_entry = r_program_remove(phys_addr);
 		if (rpc_entry == NULL){
-			pr_err("[%s]cannot find rpc_entry to free:phys_addr:%x\n", __func__, phys_addr);
+			pr_err("[%s]cannot find rpc_entry to free:phys_addr:%lx\n", __func__, phys_addr);
 			return;
 		}
 		ion_free(fw_rpc_ion_client, rpc_entry->handle);
@@ -405,7 +405,7 @@ void rpc_ion_handler(RPC_DEV_EXTRA *extra)
 			ION_FLAG_NONCACHED  | ION_FLAG_HWIPACC);
 
 		if (IS_ERR(handle)) {
-			pr_err("[%s] ERROR: secure ion_alloc fail %d\n", __func__, (int *) handle);
+			pr_err("[%s] ERROR: secure ion_alloc fail %n\n", __func__, (int *) handle);
 		}
 		if (ion_phys(fw_rpc_ion_client, handle, &phys_addr, &alloc_val) != 0) {
 			pr_err("[%s] ERROR: secure ion_phys fail\n", __func__);
@@ -617,8 +617,8 @@ int rpc_intr_init(void)
 {
 	static int is_init;
 	int result = 0, i;
+        int j = 0;
 	is_init = 0;
-	int j = 0;
 
 	fw_rpc_ion_client = ion_client_create(rtk_phoenix_ion_device,
 						"FW_REMOTE_ALLOC");

@@ -366,11 +366,11 @@ int my_copy_from_user(volatile void __iomem *des, const void *src, int size)
 {
 
 	char buf[256];
-	int count = size;
-	void *pSrc = (void *)src;
+	/*int count = size;
+	void *pSrc = (void *)src;*/
 	int ret = 0;
 	int i = 0;
-	char *csrc, *cdes;
+	char /**csrc,*/ *cdes;
 
 	if (size > 256) {
 		BUG();
@@ -615,6 +615,12 @@ static int __maybe_unused rtk_rpc_probe(struct platform_device *pdev)
 	return 0;
 }
 
+static int __maybe_unused fake_rtk_rpc_probe(struct platform_device *pdev)
+{
+        pr_info("[%s] FAKE rpc driver initial done\n", RPC_NAME);
+
+        return 0;
+}
 static int __maybe_unused rtk_rpc_remove(struct platform_device *pdev)
 {
 	return 0;
@@ -761,7 +767,7 @@ static struct __maybe_unused of_device_id rtk_rpc_ids[] = {
 };
 
 static struct platform_driver rtk_rpc_driver = {
-	.probe = rtk_rpc_probe,
+	.probe = fake_rtk_rpc_probe,
 	.remove = rtk_rpc_remove,
 #ifdef CONFIG_PM
 	.shutdown = rtk_rpc_pm_shutdown,
