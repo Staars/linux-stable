@@ -18,9 +18,7 @@
 #include <linux/dmi.h>
 #include <linux/dma-mapping.h>
 
-#ifdef CONFIG_USB_PATCH_ON_RTK
 #include <linux/usb/quirks.h>
-#endif
 
 #include "xhci.h"
 #include "xhci-trace.h"

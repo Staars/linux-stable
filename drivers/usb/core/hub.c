@@ -29,7 +29,7 @@
 #include <linux/random.h>
 #include <linux/pm_qos.h>
 
-#ifdef CONFIG_USB_PATCH_ON_RTK
+#ifdef CONFIG_RTK_PLATFORM
 #include <linux/platform_device.h>
 #include <linux/timer.h>
 #include <linux/syscalls.h>
@@ -47,7 +47,7 @@
 #define USB_TP_TRANSMISSION_DELAY	40	/* ns */
 #define USB_TP_TRANSMISSION_DELAY_MAX	65535	/* ns */
 
-#ifdef CONFIG_USB_PATCH_ON_RTK
+#ifdef CONFIG_RTK_PLATFORM
 #ifdef CONFIG_USB_DWC3_RTK
 extern void RTK_dwc3_usb3_phy_toggle(struct device *dwc3_dev, bool isConnect, int port);
 extern int RTK_dwc3_usb2_phy_toggle(struct device *dwc3_dev, bool isConnect, int port);
@@ -57,7 +57,7 @@ extern int RTK_ehci_usb2_phy_toggle(struct device *ehci_dev, bool isConnect);
 #endif
 #endif
 
-#ifdef CONFIG_USB_PATCH_ON_RTK
+#ifdef CONFIG_RTK_PLATFORM
 #ifdef CONFIG_USB_RTK_CTRL_MANAGER
 extern int RTK_usb_reprobe_usb_storage(struct usb_device *udev);
 #endif
@@ -3574,7 +3574,7 @@ int usb_port_resume(struct usb_device *udev, pm_message_t msg)
 	status = check_port_resume_type(udev,
 			hub, port1, status, portchange, portstatus);
 
-#ifdef CONFIG_USB_PATCH_ON_RTK
+#ifdef CONFIG_RTK_PLATFORM
 	/* [DEV_FIX] Disconnect usb port at resume.
 	 * commit 1a50dacafca108bd258f28755e2f4ad9ba4bc8d4
 	 * [BUG_FIX]: ID 46792 [ROOT_CAUSE]: can't recognize usb hub
@@ -4545,7 +4545,7 @@ hub_port_init(struct usb_hub *hub, struct usb_device *udev, int port1,
 	enum usb_device_speed	oldspeed = udev->speed;
 	const char		*speed;
 	int			devnum = udev->devnum;
-	const char		*driver_name;
+	/*const char		*driver_name;*/
 
 	/* root hub ports have a slightly longer reset period
 	 * (from USB 2.0 spec, section 7.1.7.5)
@@ -4612,7 +4612,7 @@ hub_port_init(struct usb_hub *hub, struct usb_device *udev, int port1,
 		speed = "variable speed Wireless";
 	else
 		speed = usb_speed_string(udev->speed);
-#ifdef CONFIG_USB_PATCH_ON_RTK
+#ifdef CONFIG_RTK_PLATFORM
 	if (udev->speed < USB_SPEED_SUPER)
 		dev_notice(&udev->dev,
 				"%s %s USB device number %d using %s\n",
@@ -4778,7 +4778,7 @@ hub_port_init(struct usb_hub *hub, struct usb_device *udev, int port1,
 			}
 			if (udev->speed >= USB_SPEED_SUPER) {
 				devnum = udev->devnum;
-#ifdef CONFIG_USB_PATCH_ON_RTK
+#ifdef CONFIG_RTK_PLATFORM
 				dev_notice(&udev->dev,
 						"%s SuperSpeed%s USB device number %d using %s\n",
 						(udev->config) ? "reset" : "new",
@@ -5164,7 +5164,7 @@ static void hub_port_connect(struct usb_hub *hub, int port1, u16 portstatus,
 		/* Run it through the hoops (find a driver, etc) */
 		if (!status) {
 			status = usb_new_device(udev);
-#ifdef CONFIG_USB_PATCH_ON_RTK
+#ifdef CONFIG_RTK_PLATFORM
 #ifdef CONFIG_USB_RTK_CTRL_MANAGER
 			if (!status)
 				RTK_usb_reprobe_usb_storage(udev);
@@ -5242,7 +5242,7 @@ static void hub_port_connect_change(struct usb_hub *hub, int port1,
 	struct usb_port *port_dev = hub->ports[port1 - 1];
 	struct usb_device *udev = port_dev->child;
 	int status = -ENODEV;
-#ifdef CONFIG_USB_PATCH_ON_RTK
+#ifdef CONFIG_RTK_PLATFORM
 	dev_notice(&port_dev->dev, "port %d, status %04x, change %04x, %s\n",
 			port1, portstatus, portchange, portspeed(hub, portstatus));
 #else
@@ -5393,7 +5393,7 @@ static void port_event(struct usb_hub *hub, int port1)
 			connect_change = 0;
 		}
 	}
-#ifdef CONFIG_USB_PATCH_ON_RTK
+#ifdef CONFIG_RTK_PLATFORM
 	if (connect_change) {
 		struct usb_device *hub_usb_dev = hub->hdev;
 		struct usb_bus *bus = hub_usb_dev->bus;

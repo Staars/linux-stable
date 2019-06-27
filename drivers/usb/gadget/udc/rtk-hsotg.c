@@ -31,7 +31,7 @@
 
 #include "rtk-hsotg.h"
 
-#ifdef CONFIG_USB_PATCH_ON_RTK
+#ifdef CONFIG_RTK_PLATFORM
 #include <soc/realtek/rtd129x_lockapi.h>
 
 static inline unsigned int otg_readl(void __iomem *reg)

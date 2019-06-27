@@ -44,7 +44,7 @@ static void update_done_list(struct ohci_hcd *);
 static void ohci_work(struct ohci_hcd *);
 
 
-#ifdef CONFIG_USB_PATCH_ON_RTK
+#ifdef CONFIG_RTK_PLATFORM
 #ifdef CONFIG_USB_EHCI_RTK
 /* Add Workaround to fixed EHCI/OHCI Wrapper can't work simultaneously */
 extern bool RTK_ehci_check_schedule_actived(const char *func);
@@ -163,7 +163,7 @@ __acquires(ohci->lock)
 	int			status = -EINPROGRESS;
 	int			autostopped = ohci->autostop;
 
-#ifdef CONFIG_USB_PATCH_ON_RTK
+#ifdef CONFIG_RTK_PLATFORM
 #ifdef CONFIG_USB_EHCI_RTK
 	/* Add Workaround to fixed EHCI/OHCI Wrapper can't work simultaneously */
 	/* When EHCI schedule actived, don't resume OHCI*/
@@ -317,7 +317,7 @@ skip_resume:
 	}
 
 	ohci->rh_state = OHCI_RH_RUNNING;
-#ifdef CONFIG_USB_PATCH_ON_RTK
+#ifdef CONFIG_RTK_PLATFORM
 	if (ohci->resuming) {
 		complete(&ohci->resuming_done);
 		ohci->resuming = 0;
@@ -549,7 +549,7 @@ int ohci_hub_status_data(struct usb_hcd *hcd, char *buf)
 	else
 		clear_bit(HCD_FLAG_POLL_RH, &hcd->flags);
 
-#ifdef CONFIG_USB_PATCH_ON_RTK
+#ifdef CONFIG_RTK_PLATFORM
 	/* add to check OHCI register deadbeef */
 	if (true) {
 		u32 status = roothub_portstatus (ohci, 0);
@@ -559,7 +559,7 @@ int ohci_hub_status_data(struct usb_hcd *hcd, char *buf)
 			clear_bit(HCD_FLAG_POLL_RH, &hcd->flags);
 		}
 	}
-#endif //CONFIG_USB_PATCH_ON_RTK
+#endif //CONFIG_RTK_PLATFORM
 
 done:
 	spin_unlock_irqrestore (&ohci->lock, flags);

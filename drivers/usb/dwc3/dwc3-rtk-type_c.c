@@ -215,7 +215,7 @@ static void disable_writel(int value, void __iomem *addr)
 	writel(~value & readl(addr),  addr);
 }
 
-static init_type_c_mode(struct type_c_data *type_c)
+static int init_type_c_mode(struct type_c_data *type_c)
 {
 	if (type_c->chip_id == CHIP_ID_RTD1619) {
 		void __iomem *drd_wrap_base = type_c->wrap_base;
@@ -229,13 +229,14 @@ static init_type_c_mode(struct type_c_data *type_c)
 
 		iounmap(u3host_u3port_dis);
 	}
+	return 0;
 }
 
-static void switch_type_c_plug_side(struct type_c_data *type_c, int cc)
+static void switch_type_c_plug_side(struct type_c_data *type_c, const u64 cc)
 {
 	if ((type_c->chip_id & 0xFFF0) == CHIP_ID_RTD129X) {
 		void __iomem *type_c_reg_base = type_c->type_c_reg_base;
-		int value;
+		u64 value;
 
 		value = (~SWITCH_MASK & readl(type_c_reg_base));
 		value |= cc;
@@ -266,6 +267,7 @@ static void switch_type_c_plug_side(struct type_c_data *type_c, int cc)
 		}
 		iounmap(u3host_wrap_base);
 	}
+	return;
 }
 
 static void switch_dwc3_mode(struct type_c_data *type_c, int dr_mode)
@@ -1964,7 +1966,7 @@ MODULE_DEVICE_TABLE(of, rtk_dwc3_type_c_match);
 
 #if defined(CONFIG_PM_SLEEP) && defined(CONFIG_SUSPEND)
 static int dwc3_rtk_type_c_prepare(struct device *dev) {
-	struct type_c_data *type_c = dev_get_drvdata(dev);
+	/*struct type_c_data *type_c = dev_get_drvdata(dev);*/
 	int ret = 0;
 
 	dev_info(dev, "[USB] Enter %s\n", __func__);

@@ -1,4 +1,5 @@
-// SPDX-License-Identifier: GPL-2.0
+// SPDX-License-Identifier: GPL-2.0ini
+
 /**
  * core.c - DesignWare USB3 DRD Controller Core file
  *
@@ -36,7 +37,7 @@
 #include <linux/of_address.h>
 #endif
 
-#ifdef CONFIG_USB_PATCH_ON_RTK
+#ifdef CONFIG_RTK_PLATFORM
 #include <linux/suspend.h>
 #endif
 
@@ -941,25 +942,21 @@ static int dwc3_core_init(struct dwc3 *dwc)
 	ret = dwc3_phy_setup(dwc);
 	if (ret)
 		goto err0;
-
 	if (!dwc->ulpi_ready) {
 		ret = dwc3_core_ulpi_init(dwc);
 		if (ret)
 			goto err0;
 		dwc->ulpi_ready = true;
 	}
-
 	if (!dwc->phys_ready) {
 		ret = dwc3_core_get_phy(dwc);
 		if (ret)
 			goto err0a;
 		dwc->phys_ready = true;
 	}
-
 	ret = dwc3_core_soft_reset(dwc);
 	if (ret)
 		goto err0a;
-
 	dwc3_core_setup_global_control(dwc);
 	dwc3_core_num_eps(dwc);
 
@@ -974,10 +971,10 @@ static int dwc3_core_init(struct dwc3 *dwc)
 
 	usb_phy_set_suspend(dwc->usb2_phy, 0);
 	usb_phy_set_suspend(dwc->usb3_phy, 0);
+
 	ret = phy_power_on(dwc->usb2_generic_phy);
 	if (ret < 0)
 		goto err2;
-
 	ret = phy_power_on(dwc->usb3_generic_phy);
 	if (ret < 0)
 		goto err3;
@@ -1097,11 +1094,9 @@ static int dwc3_core_init(struct dwc3 *dwc)
 		dwc3_writel(dwc->regs, DWC3_GUCTL1,
 				dwc3_readl(dwc->regs, DWC3_GUCTL1) | (1<<16));
 
-#ifdef CONFIG_USB_PATCH_ON_RTK
 	if (dwc->revision >= DWC3_REVISION_300A)
-		dwc3_writel(dwc->regs, DWC3_DEV_IMOD,
-					dwc3_readl(dwc->regs, DWC3_DEV_IMOD) | DWC3_DEVICE_IMODI(0x1));
-#endif
+		dwc3_writel(dwc->regs, DWC3_DEV_IMOD(0),
+					dwc3_readl(dwc->regs, DWC3_DEV_IMOD(0)) | DWC3_DEVICE_IMODI(0x1));
 
 #endif
 	return 0;
@@ -1146,8 +1141,10 @@ static int dwc3_core_get_phy(struct dwc3 *dwc)
 	if (IS_ERR(dwc->usb2_phy)) {
 		ret = PTR_ERR(dwc->usb2_phy);
 		if (ret == -ENXIO || ret == -ENODEV) {
+			dev_err(dev, "dwc->usb2_phy -> NULL\n");
 			dwc->usb2_phy = NULL;
 		} else if (ret == -EPROBE_DEFER) {
+			dev_err(dev, "dwc->usb2_phy -> not ready yet\n");
 			return ret;
 		} else {
 			dev_err(dev, "no usb2 phy configured\n");
@@ -1192,7 +1189,6 @@ static int dwc3_core_get_phy(struct dwc3 *dwc)
 			return ret;
 		}
 	}
-
 	return 0;
 }
 
@@ -1516,6 +1512,9 @@ static int dwc3_probe(struct platform_device *pdev)
 	if (IS_ERR(dwc->reset))
 		return PTR_ERR(dwc->reset);
 
+#ifdef CONFIG_USB_DWC3_RTK
+	dwc->num_clks = 0;
+#else
 	if (dev->of_node) {
 		dwc->num_clks = ARRAY_SIZE(dwc3_core_clks);
 
@@ -1529,6 +1528,7 @@ static int dwc3_probe(struct platform_device *pdev)
 		if (ret)
 			dwc->num_clks = 0;
 	}
+#endif /*CONFIG_USB_DWC3_RTK*/
 
 	ret = reset_control_deassert(dwc->reset);
 	if (ret)
@@ -1571,6 +1571,8 @@ static int dwc3_probe(struct platform_device *pdev)
 	ret = dwc3_alloc_scratch_buffers(dwc);
 	if (ret)
 		goto err3;
+
+	dev_err(dev, "will try to initialize core\n");
 
 	ret = dwc3_core_init(dwc);
 	if (ret) {
@@ -1878,13 +1880,12 @@ static int dwc3_runtime_idle(struct device *dev)
 }
 #endif /* CONFIG_PM */
 
-#ifdef CONFIG_PM_SLEEP
+#if defined(CONFIG_PM_SLEEP) && defined(CONFIG_SUSPEND)
 static int dwc3_suspend(struct device *dev)
 {
 	struct dwc3	*dwc = dev_get_drvdata(dev);
 	int		ret;
 
-#ifdef CONFIG_USB_PATCH_ON_RTK
 	dev_info(dev, "[USB] Enter %s", __func__);
 	if (RTK_PM_STATE == PM_SUSPEND_STANDBY){
 		//For idle mode
@@ -1894,7 +1895,6 @@ static int dwc3_suspend(struct device *dev)
 	//For suspend mode
 	dev_info(dev,  "[USB] %s Suspend mode\n", __func__);
 
-#endif
 
 	ret = dwc3_suspend_common(dwc, PMSG_SUSPEND);
 	if (ret)
@@ -1910,7 +1910,6 @@ static int dwc3_resume(struct device *dev)
 	struct dwc3	*dwc = dev_get_drvdata(dev);
 	int		ret;
 
-#ifdef CONFIG_USB_PATCH_ON_RTK
 	dev_info(dev, "[USB] Enter %s", __func__);
 	if (RTK_PM_STATE == PM_SUSPEND_STANDBY){
 		//For idle mode
@@ -1919,7 +1918,6 @@ static int dwc3_resume(struct device *dev)
 	}
 	//For suspend mode
 	dev_info(dev,  "[USB] %s Suspend mode\n", __func__);
-#endif
 
 #ifdef CONFIG_USB_DWC3_RTK
 	/* workaround: to avoid transaction error and cause port reset
@@ -1944,12 +1942,10 @@ static int dwc3_resume(struct device *dev)
 	dwc3_writel(dwc->regs, DWC3_GUCTL,
 					dwc3_readl(dwc->regs, DWC3_GUCTL) | (1<<14));
 
-#ifdef CONFIG_USB_PATCH_ON_RTK
 	if (dwc->revision >= DWC3_REVISION_300A)
-		dwc3_writel(dwc->regs, DWC3_DEV_IMOD,
-			    dwc3_readl(dwc->regs, DWC3_DEV_IMOD) |
+		dwc3_writel(dwc->regs, DWC3_DEV_IMOD(0),
+			    dwc3_readl(dwc->regs, DWC3_DEV_IMOD(0)) |
 			        DWC3_DEVICE_IMODI(0x1));
-#endif
 
 #endif
 
@@ -1963,19 +1959,17 @@ static int dwc3_resume(struct device *dev)
 	pm_runtime_set_active(dev);
 	pm_runtime_enable(dev);
 
-#ifdef CONFIG_USB_PATCH_ON_RTK
-out:
+/*out:*/
 	dev_info(dev, "[USB] Exit %s", __func__);
-#endif
 	return 0;
 }
-#endif /* CONFIG_PM_SLEEP */
 
 static const struct dev_pm_ops dwc3_dev_pm_ops = {
 	SET_SYSTEM_SLEEP_PM_OPS(dwc3_suspend, dwc3_resume)
 	SET_RUNTIME_PM_OPS(dwc3_runtime_suspend, dwc3_runtime_resume,
 			dwc3_runtime_idle)
 };
+#endif /* CONFIG_PM_SLEEP && CONFIG_SUSPEND*/
 
 #ifdef CONFIG_OF
 static const struct of_device_id of_dwc3_match[] = {
@@ -2008,7 +2002,9 @@ static struct platform_driver dwc3_driver = {
 		.name	= "dwc3",
 		.of_match_table	= of_match_ptr(of_dwc3_match),
 		.acpi_match_table = ACPI_PTR(dwc3_acpi_match),
+#if defined(CONFIG_PM_SLEEP) && defined(CONFIG_SUSPEND)
 		.pm	= &dwc3_dev_pm_ops,
+#endif
 	},
 };
 

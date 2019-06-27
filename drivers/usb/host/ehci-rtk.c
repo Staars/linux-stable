@@ -34,12 +34,11 @@ static const char hcd_name[] = "ehci-rtk";
 
 static struct hc_driver __read_mostly ehci_rtk_hc_driver;
 
-static struct ehci_rtk {
+/*static*/ struct ehci_rtk {
 	struct device *dev;
 	struct usb_phy *phy;
 	struct ehci_hcd *ehci;
 	int irq;
-
 	struct work_struct work;
 };
 
@@ -49,6 +48,8 @@ extern void rtk_rle0599_phy_toggle(struct usb_phy *usb2_phy, bool isConnect);
 
 int RTK_ehci_usb2_phy_toggle(struct device *hcd_dev, bool isConnect)
 {
+	int ret;
+
 	struct usb_phy *phy = NULL;
 
 	if (hcd_dev == NULL)
@@ -56,8 +57,15 @@ int RTK_ehci_usb2_phy_toggle(struct device *hcd_dev, bool isConnect)
 
 	phy = devm_usb_get_phy_by_phandle(hcd_dev, "usb-phy", 0);
 	if (IS_ERR(phy)) {
-		dev_err(hcd_dev, "No usb phy found\n");
-		return -ENODEV;
+		ret = PTR_ERR(phy);
+		if (ret == -EPROBE_DEFER){
+			dev_err(hcd_dev, "phy not yet loaded\n");
+			return ret;
+		}
+		else{
+			dev_err(hcd_dev, "No usb phy found\n");
+			return ret;
+		}
 	}
 
 	dev_dbg(hcd_dev, "%s\n", __func__);
@@ -109,6 +117,7 @@ static int ehci_rtk_drv_probe(struct platform_device *pdev)
 	int irq, err = 0;
 	struct usb_phy *phy;
 	unsigned long probe_time = jiffies;
+	/*int ret;*/
 
 	if (usb_disabled())
 		return -ENODEV;
@@ -117,10 +126,18 @@ static int ehci_rtk_drv_probe(struct platform_device *pdev)
 
 	//phy = devm_usb_get_phy(&pdev->dev, USB_PHY_TYPE_USB2);
 	phy = devm_usb_get_phy_by_phandle(&pdev->dev, "usb-phy", 0);
-	if (IS_ERR(phy)) {
-		dev_err(&pdev->dev, "No usb phy found\n");
-		return -ENODEV;
-	}
+
+        if (IS_ERR(phy)) {
+               err = PTR_ERR(phy);
+                if (err == -EPROBE_DEFER){
+                        dev_err(&pdev->dev, "phy not yet loaded\n");
+                        return err;
+                }
+                else{
+                        dev_err(&pdev->dev, "No usb phy found\n");
+                        return err;
+                }
+        }
 
 	irq = irq_of_parse_and_map(pdev->dev.of_node, 0);
 	if (irq <= 0) {
@@ -176,7 +193,7 @@ static int ehci_rtk_drv_probe(struct platform_device *pdev)
 	ehci = hcd_to_ehci(hcd);
 	ehci->caps = hcd->regs;
 
-#ifdef CONFIG_USB_PATCH_ON_RTK
+#ifdef CONFIG_RTK_PLATFORM
 	if (of_property_read_bool(pdev->dev.of_node, "fixed_async_list_addr_bug")) {
 		dev_info(&pdev->dev, "%s Enable fixed_async_list_addr_bug\n", __func__);
 		ehci->fixed_async_list_addr_bug  = 1;
@@ -238,7 +255,7 @@ static int ehci_rtk_drv_remove(struct platform_device *pdev)
 	return 0;
 }
 
-#ifdef CONFIG_USB_PATCH_ON_RTK
+#ifdef CONFIG_RTK_PLATFORM
 /* Add Workaround to fixed EHCI/OHCI Wrapper can't work simultaneously */
 bool RTK_ehci_check_schedule_actived(const char *func)
 {
@@ -267,7 +284,7 @@ bool RTK_ehci_check_schedule_actived(const char *func)
 		connected = true;
 	return connected;
 }
-#endif //CONFIG_USB_PATCH_ON_RTK
+#endif //CONFIG_RTK_PLATFORM
 
 #ifdef CONFIG_SUSPEND
 static int rtk_ehci_suspend(struct device *dev);

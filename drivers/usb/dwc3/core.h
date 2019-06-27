@@ -595,6 +595,17 @@
 #define DWC3_OSTS_VBUSVLD		BIT(1)
 #define DWC3_OSTS_CONIDSTS		BIT(0)
 
+#ifdef CONFIG_RTK_PLATFORM
+
+#define DWC3_EVNT_HANDLER_BUSY		(1 << 31)
+
+#define DWC3_DEVICE_IMODC(n)		((0xffff & (n)) << 16)
+#define DWC3_DEVICE_IMODI(n)		((0xffff & (n)))
+
+#endif
+
+
+
 /* Structures */
 
 struct dwc3_trb;

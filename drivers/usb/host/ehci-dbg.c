@@ -867,7 +867,7 @@ static ssize_t fill_registers_buffer(struct debug_buffer *buf)
 	size -= temp;
 	next += temp;
 
-#ifdef CONFIG_USB_PATCH_ON_RTK
+#ifdef CONFIG_RTK_PLATFORM
 	temp = scnprintf (next, size, "CTRLDSSEGMENT %08x\n",
 			ehci_readl(ehci, &ehci->regs->segment));
 	size -= temp;

@@ -11,6 +11,8 @@
 #include <linux/module.h>
 #include <linux/slab.h>
 #include <linux/of.h>
+#include <linux/of_platform.h>
+#include <linux/platform_device.h>
 
 #include <linux/usb/phy.h>
 
@@ -501,7 +503,7 @@ struct  usb_phy *devm_usb_get_phy_by_node(struct device *dev,
 
 	phy = __of_usb_find_phy(node);
 
-#ifdef CONFIG_USB_PATCH_ON_RTK
+#ifdef CONFIG_RTK_PLATFORM
 	// Add to support different phy driver on multi-host controller
 	if (IS_ERR(phy)) {
 		if (node != NULL) {

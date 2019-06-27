@@ -215,7 +215,7 @@ static int ohci_rtk_drv_probe(struct platform_device *pdev)
 
 	ohci_hcd_init(ohci);
 
-#ifdef CONFIG_USB_PATCH_ON_RTK
+#ifdef CONFIG_RTK_PLATFORM
 	if (pdev->dev.of_node) {
 		u32 wrap_reg = 0;
 		of_property_read_u32(pdev->dev.of_node, "wrap_reg", &wrap_reg);
@@ -273,7 +273,7 @@ static int ohci_rtk_drv_remove(struct platform_device *pdev)
 
 	iounmap(hcd->regs);
 
-#ifdef CONFIG_USB_PATCH_ON_RTK
+#ifdef CONFIG_RTK_PLATFORM
 	if (hcd) {
 		struct ohci_hcd *ohci;
 		ohci = hcd_to_ohci(hcd);
@@ -290,11 +290,12 @@ static int ohci_rtk_drv_remove(struct platform_device *pdev)
 	return 0;
 }
 
-#ifdef CONFIG_USB_PATCH_ON_RTK
+#if defined(CONFIG_RTK_PLATFORM)
+
 extern int usb_runtime_suspend(struct device *dev);
 
 /* Add Workaround to fixed EHCI/OHCI Wrapper can't work simultaneously */
-int RTK_ohci_force_suspend(const char *func)
+static int RTK_ohci_force_suspend(const char *func)
 {
 	static struct ohci_hcd *s_ohci = NULL;
 	struct device_node *node = NULL;
@@ -347,7 +348,7 @@ int RTK_ohci_force_suspend(const char *func)
 		pr_debug("%s NO OHCI !!!\n", __func__);
 	return 0;
 }
-#endif //CONFIG_USB_PATCH_ON_RTK
+#endif //CONFIG_RTK_PLATFORM
 
 #ifdef CONFIG_PM
 static int rtk_ohci_suspend(struct device *dev)

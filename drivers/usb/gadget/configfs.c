@@ -1491,7 +1491,7 @@ static struct config_group *gadgets_make(
 
 	gi->composite.gadget_driver = configfs_driver_template;
 
-#ifdef CONFIG_USB_PATCH_ON_RTK
+#ifdef CONFIG_RTK_PLATFORM
 	INIT_LIST_HEAD(&(gi->composite.gadget_driver.pending));
 #endif
 	gi->composite.gadget_driver.function = kstrdup(name, GFP_KERNEL);

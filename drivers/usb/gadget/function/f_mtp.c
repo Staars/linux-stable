@@ -74,7 +74,7 @@
 #define MTP_RESPONSE_DEVICE_BUSY    0x2019
 #define DRIVER_NAME "mtp"
 
-#ifdef CONFIG_USB_PATCH_ON_RTK
+#ifdef CONFIG_RTK_PLATFORM
 #define IOCNR_MTP_SEND_FILE 	0
 #define IOCNR_MTP_RECEIVE_FILE	1
 #define IOCNR_MTP_SEND_EVENT	3
@@ -588,7 +588,7 @@ requeue_req:
 	req = dev->rx_req[0];
 	req->length = len;
 	dev->rx_done = 0;
-#ifdef CONFIG_USB_PATCH_ON_RTK
+#ifdef CONFIG_RTK_PLATFORM
 	// add workaround to fix Rx for bMaxPacketSize0
 	if (count == 512) {
 		struct usb_gadget *gadget = cdev->gadget;
@@ -634,7 +634,7 @@ done:
 		dev->state = STATE_READY;
 	spin_unlock_irq(&dev->lock);
 
-#ifdef CONFIG_USB_PATCH_ON_RTK
+#ifdef CONFIG_RTK_PLATFORM
 	/* fixed when cdev->gadget is null */
 	pr_debug("mtp_read returning %zd\n", r);
 #else
@@ -862,7 +862,7 @@ static void receive_file_work(struct work_struct *data)
 	filp = dev->xfer_file;
 	offset = dev->xfer_file_offset;
 	count = dev->xfer_file_length;
-#ifdef CONFIG_USB_PATCH_ON_RTK
+#ifdef CONFIG_RTK_PLATFORM
 	/* Fixed last transfer can't complete */
 	if (count != 0xFFFFFFFF)
 		count = count + offset;
@@ -981,7 +981,7 @@ static long mtp_ioctl(struct file *fp, unsigned code, unsigned long value)
 
 	if (mtp_lock(&dev->ioctl_excl))
 		return -EBUSY;
-#ifdef CONFIG_USB_PATCH_ON_RTK
+#ifdef CONFIG_RTK_PLATFORM
 	DBG(dev->cdev, "%s\n", __func__);
 
 	DBG(dev->cdev,

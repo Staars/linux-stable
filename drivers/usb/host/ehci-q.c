@@ -27,7 +27,7 @@
 
 /*-------------------------------------------------------------------------*/
 
-#ifdef CONFIG_USB_PATCH_ON_RTK
+#ifdef CONFIG_RTK_PLATFORM
 extern int RTK_ohci_force_suspend(const char *func);
 
 /* Add Workaround to fixed EHCI/OHCI Wrapper can't work simultaneously */
@@ -968,10 +968,10 @@ done:
 
 static void enable_async(struct ehci_hcd *ehci)
 {
-#ifdef CONFIG_USB_PATCH_ON_RTK
+#ifdef CONFIG_RTK_PLATFORM
 	/* Add Workaround to fixed EHCI/OHCI Wrapper can't work simultaneously */
 	check_and_restore_async_list(ehci, __func__, __LINE__);
-#endif //CONFIG_USB_PATCH_ON_RTK
+#endif //CONFIG_RTK_PLATFORM
 
 	if (ehci->async_count++)
 		return;
@@ -987,7 +987,7 @@ static void enable_async(struct ehci_hcd *ehci)
 static void disable_async(struct ehci_hcd *ehci)
 {
 
-#ifdef CONFIG_USB_PATCH_ON_RTK
+#ifdef CONFIG_RTK_PLATFORM
 	/* Add Workaround to fixed EHCI/OHCI Wrapper can't work simultaneously */
 	check_and_restore_async_list(ehci, __func__, __LINE__);
 #endif
@@ -1009,11 +1009,11 @@ static void qh_link_async (struct ehci_hcd *ehci, struct ehci_qh *qh)
 	__hc32		dma = QH_NEXT(ehci, qh->qh_dma);
 	struct ehci_qh	*head;
 
-#ifdef CONFIG_USB_PATCH_ON_RTK
+#ifdef CONFIG_RTK_PLATFORM
 	/* Add Workaround to fixed EHCI/OHCI Wrapper can't work simultaneously */
 	/* When EHCI schedule actived, force suspend OHCI*/
 	check_and_restore_async_list(ehci, __func__, __LINE__);
-#endif //CONFIG_USB_PATCH_ON_RTK
+#endif //CONFIG_RTK_PLATFORM
 
 	/* Don't link a QH if there's a Clear-TT-Buffer pending */
 	if (unlikely(qh->clearing_tt))
@@ -1144,11 +1144,9 @@ submit_async (
 
 	epnum = urb->ep->desc.bEndpointAddress;
 
-#ifdef CONFIG_USB_PATCH_ON_RTK
 #ifdef CONFIG_USB_OHCI_RTK
 	/* Add Workaround to fixed EHCI/OHCI Wrapper can't work simultaneously */
-	RTK_ohci_force_suspend(__func__);
-#endif
+/*FIXME	RTK_ohci_force_suspend(__func__);*/
 #endif
 
 #ifdef EHCI_URB_TRACE
@@ -1311,10 +1309,10 @@ static void single_unlink_async(struct ehci_hcd *ehci, struct ehci_qh *qh)
 	if (ehci->qh_scan_next == qh)
 		ehci->qh_scan_next = qh->qh_next.qh;
 
-#ifdef CONFIG_USB_PATCH_ON_RTK
+#ifdef CONFIG_RTK_PLATFORM
 	/* Add Workaround to fixed EHCI/OHCI Wrapper can't work simultaneously */
 	check_and_restore_async_list(ehci, __func__, __LINE__);
-#endif //CONFIG_USB_PATCH_ON_RTK
+#endif //CONFIG_RTK_PLATFORM
 
 }
 
@@ -1345,10 +1343,10 @@ static void end_iaa_cycle(struct ehci_hcd *ehci)
 		ehci_writel(ehci, (u32) ehci->async->qh_dma,
 			    &ehci->regs->async_next);
 
-#ifdef CONFIG_USB_PATCH_ON_RTK
+#ifdef CONFIG_RTK_PLATFORM
 	/* Add Workaround to fixed EHCI/OHCI Wrapper can't work simultaneously */
 	check_and_restore_async_list(ehci, __func__, __LINE__);
-#endif //CONFIG_USB_PATCH_ON_RTK
+#endif //CONFIG_RTK_PLATFORM
 
 	/* The current IAA cycle has ended */
 	ehci->iaa_in_progress = false;

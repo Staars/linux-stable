@@ -24,7 +24,7 @@
 #include <soc/realtek/rtd129x_efuse.h>
 
 #include "phy-rtk-usb.h"
-#ifdef CONFIG_USB_PATCH_ON_RTK
+#ifdef CONFIG_RTK_PLATFORM
 /* Add global lock for emmc issue*/
 #include <soc/realtek/rtd129x_lockapi.h>
 #endif
@@ -105,14 +105,14 @@ static int rtk_usb_phy_write(struct rtk_usb_phy_s *rtk_phy, char addr, char data
 
 	//printk("[%s:%d], addr = 0x%x, data = 0x%x\n", __FUNCTION__, __LINE__, addr, data);
 
-#ifdef CONFIG_USB_PATCH_ON_RTK
+#ifdef CONFIG_RTK_PLATFORM
 	/* Add global lock for emmc issue*/
 	unsigned long flags;
 	rtk_lockapi_lock(flags,__FUNCTION__);
 #endif
 	//write data to VStatusOut2 (data output to phy)
 	phy_write(REG_WRAP_VStatusOut2, (u32) data);
-#ifdef CONFIG_USB_PATCH_ON_RTK
+#ifdef CONFIG_RTK_PLATFORM
 	/* Add global lock for emmc issue*/
 	rtk_lockapi_unlock(flags,__FUNCTION__);
 #endif
@@ -161,8 +161,8 @@ void rtk_usb_phy_shutdown(struct usb_phy *phy)
 static int updated_phy_parameter_by_efuse(struct rtk_usb_phy_s *rtk_usb_phy){
 	u8 value = 0;
 	int size = 4;
-	int shift = 0;
-	int offest = 0x1dc;
+	/*int shift = 0;
+	int offest = 0x1dc;*/
 	int mask = (BIT(size) - 1);
 	struct phy_data *phy_data = rtk_usb_phy->phy_data;
 	struct rtk_usb_phy_data_s *phy_page0_default_setting = phy_data->page0;

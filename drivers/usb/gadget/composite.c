@@ -303,7 +303,7 @@ done:
 		DBG(config->cdev, "adding '%s'/%p --> %d\n",
 				function->name, function, value);
 
-#ifdef CONFIG_USB_PATCH_ON_RTK
+#ifdef CONFIG_RTK_PLATFORM
 	/* add to print log*/
 	pr_err("adding '%s'/%p to config '%s'/%p --> %s (ret=%d)\n",
 			function->name, function,

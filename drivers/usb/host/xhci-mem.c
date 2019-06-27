@@ -1049,7 +1049,6 @@ void xhci_copy_ep0_dequeue_into_input_ctx(struct xhci_hcd *xhci,
 	ep0_ctx = xhci_get_ep_ctx(xhci, virt_dev->in_ctx, 0);
 	ep_ring = virt_dev->eps[0].ring;
 
-#ifdef CONFIG_USB_PATCH_ON_RTK
 #if 1
 	/* [DEV_FIX]xhci control tranfer will error occasionally (1/45)
 	 * commit 0d2ae2abc867c1a31b7d280dc6429d18ba3770c5
@@ -1109,7 +1108,6 @@ void xhci_copy_ep0_dequeue_into_input_ctx(struct xhci_hcd *xhci,
 		ring->cycle_state = 1;
 		wmb();
 	}
-#endif
 #endif
 	/*
 	 * FIXME we don't keep track of the dequeue pointer very well after a

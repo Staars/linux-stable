@@ -19,6 +19,8 @@
 #include <linux/slab.h>
 #include <linux/acpi.h>
 
+#include <linux/suspend.h>
+
 #include "xhci.h"
 #include "xhci-plat.h"
 #include "xhci-mvebu.h"
@@ -380,7 +382,6 @@ static int xhci_plat_remove(struct platform_device *dev)
 	return 0;
 }
 
-#ifdef CONFIG_USB_PATCH_ON_RTK
 /* [DEV_FIX]implement New USB reset mechanism with CRT reset to workaround any HW or IP issues
  * commit 319ff9f5c298b94517a10d4ced59812b54994347
  */
@@ -388,14 +389,13 @@ static int xhci_plat_suspend(struct device *dev);
 int RTK_xhci_plat_suspend(struct device *dev) {
 	return xhci_plat_suspend(dev);
 }
-#endif
 
 static int __maybe_unused xhci_plat_suspend(struct device *dev)
 {
 	struct usb_hcd	*hcd = dev_get_drvdata(dev);
 	struct xhci_hcd	*xhci = hcd_to_xhci(hcd);
 
-#ifdef CONFIG_USB_PATCH_ON_RTK
+#ifdef CONFIG_SUSPEND
 	if (RTK_PM_STATE == PM_SUSPEND_STANDBY) {
 		dev_info(dev, "[USB] %s Idle mode\n", __func__);
 		return 0;
@@ -414,7 +414,7 @@ static int __maybe_unused xhci_plat_suspend(struct device *dev)
 	return xhci_suspend(xhci, device_may_wakeup(dev));
 }
 
-#ifdef CONFIG_USB_PATCH_ON_RTK
+#ifdef CONFIG_SUSPEND
 /* [DEV_FIX]implement New USB reset mechanism with CRT reset to workaround any HW or IP issues
  * commit 319ff9f5c298b94517a10d4ced59812b54994347
  */
@@ -430,15 +430,14 @@ static int __maybe_unused xhci_plat_resume(struct device *dev)
 {
 	struct usb_hcd	*hcd = dev_get_drvdata(dev);
 	struct xhci_hcd	*xhci = hcd_to_xhci(hcd);
-
-#ifdef CONFIG_USB_PATCH_ON_RTK
+	int ret;
+#ifdef CONFIG_SUSPEND
 	if (RTK_PM_STATE == PM_SUSPEND_STANDBY) {
 		dev_info(dev, "[USB] %s Idle mode\n", __func__);
 		return 0;
 	} else
 		dev_info(dev,  "[USB] %s Suspend mode --> xhci_resume\n", __func__);
 #endif
-	int ret;
 
 	ret = xhci_priv_resume_quirk(hcd);
 	if (ret)

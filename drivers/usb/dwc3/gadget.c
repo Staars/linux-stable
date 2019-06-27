@@ -1918,7 +1918,7 @@ static int dwc3_gadget_start(struct usb_gadget *g,
 
 	dwc->gadget_driver	= driver;
 
-#ifdef CONFIG_USB_PATCH_ON_RTK
+#ifdef CONFIG_RTK_PLATFORM
 	dwc->link_state = 0;
 #endif
 	if (pm_runtime_active(dwc->dev))
@@ -1990,7 +1990,7 @@ static int dwc3_gadget_stop(struct usb_gadget *g)
 out:
 	dwc->gadget_driver	= NULL;
 
-#ifdef CONFIG_USB_PATCH_ON_RTK
+#ifdef CONFIG_RTK_PLATFORM
 	dwc->link_state = 0;
 #endif
 
@@ -3046,7 +3046,7 @@ static irqreturn_t dwc3_process_event_buf(struct dwc3_event_buffer *evt)
 		 */
 		evt->lpos = (evt->lpos + 4) % evt->length;
 		left -= 4;
-#ifdef CONFIG_USB_PATCH_ON_RTK
+#ifdef CONFIG_RTK_PLATFORM
 		if (dwc->revision < DWC3_REVISION_300A)
 			dwc3_writel(dwc->regs, DWC3_GEVNTCOUNT(0), 4);
 #else
@@ -3064,7 +3064,7 @@ static irqreturn_t dwc3_process_event_buf(struct dwc3_event_buffer *evt)
 	reg &= ~DWC3_GEVNTSIZ_INTMASK;
 	dwc3_writel(dwc->regs, DWC3_GEVNTSIZ(0), reg);
 
-#ifdef CONFIG_USB_PATCH_ON_RTK
+#ifdef CONFIG_RTK_PLATFORM
 	if (dwc->revision >= DWC3_REVISION_300A)
 		dwc3_writel(dwc->regs, DWC3_GEVNTCOUNT(0), DWC3_EVNT_HANDLER_BUSY);
 #endif
@@ -3119,7 +3119,7 @@ static irqreturn_t dwc3_check_event_buf(struct dwc3_event_buffer *evt)
 	if (!count)
 		return IRQ_NONE;
 
-#ifdef CONFIG_USB_PATCH_ON_RTK
+#ifdef CONFIG_RTK_PLATFORM
 	if (evt->flags & DWC3_EVENT_PENDING) {
 		return IRQ_NONE;
 	}
@@ -3141,7 +3141,7 @@ static irqreturn_t dwc3_check_event_buf(struct dwc3_event_buffer *evt)
 
 	dwc3_writel(dwc->regs, DWC3_GEVNTCOUNT(0), count);
 
-#ifdef CONFIG_USB_PATCH_ON_RTK
+#ifdef CONFIG_RTK_PLATFORM
 	if (dwc->revision >= DWC3_REVISION_300A)
 		dwc3_writel(dwc->regs, DWC3_GEVNTCOUNT(0), count);
 #endif
@@ -3201,7 +3201,7 @@ int dwc3_gadget_init(struct dwc3 *dwc)
 	int irq;
 
 #ifdef CONFIG_USB_RTK_DWC3_DRD_MODE
-	if (dwc->has_gadget) return;
+	if (dwc->has_gadget) return 0;
 	dev_info(dwc->dev, "%s Enter\n", __func__);
 #endif
 	irq = dwc3_gadget_get_irq(dwc);
